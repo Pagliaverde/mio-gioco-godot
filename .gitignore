@@ -1,0 +1,11 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Se usi versioni vecchie di Godot (3.x)
+.import/
+export_presets.cfg
+
+# File di sistema
+.DS_Store
+Thumbs.db
