@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://5kfhrppqke7t"
-path="res://.godot/imported/Tilled_Dirt_v2.png-517ca25e7a988fc3fbcded353a08adc4.ctex"
+uid="uid://bkca1spdtwfup"
+path="res://.godot/imported/Free_Chicken_House.png-d382b600a3f74227874c611f3bcdbdcd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Asset/TileMap/Map/Tilled_Dirt_v2.png"
-dest_files=["res://.godot/imported/Tilled_Dirt_v2.png-517ca25e7a988fc3fbcded353a08adc4.ctex"]
+source_file="res://Asset/Sprite/Object/Free_Chicken_House.png"
+dest_files=["res://.godot/imported/Free_Chicken_House.png-d382b600a3f74227874c611f3bcdbdcd.ctex"]
 
 [params]
 

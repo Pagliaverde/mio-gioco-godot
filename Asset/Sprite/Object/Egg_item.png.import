@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://5kfhrppqke7t"
-path="res://.godot/imported/Tilled_Dirt_v2.png-517ca25e7a988fc3fbcded353a08adc4.ctex"
+uid="uid://sg0cobdjp1ox"
+path="res://.godot/imported/Egg_item.png-9a1e3bdec7f023c3302e73db8095468b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Asset/TileMap/Map/Tilled_Dirt_v2.png"
-dest_files=["res://.godot/imported/Tilled_Dirt_v2.png-517ca25e7a988fc3fbcded353a08adc4.ctex"]
+source_file="res://Asset/Sprite/Object/Egg_item.png"
+dest_files=["res://.godot/imported/Egg_item.png-9a1e3bdec7f023c3302e73db8095468b.ctex"]
 
 [params]
 

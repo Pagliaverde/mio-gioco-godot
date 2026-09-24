@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://5kfhrppqke7t"
-path="res://.godot/imported/Tilled_Dirt_v2.png-517ca25e7a988fc3fbcded353a08adc4.ctex"
+uid="uid://dax1ivf8xr0dv"
+path="res://.godot/imported/Simple_Milk_and_grass_item.png-e0d4e5842700e03b1f0b4738d3ea5571.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Asset/TileMap/Map/Tilled_Dirt_v2.png"
-dest_files=["res://.godot/imported/Tilled_Dirt_v2.png-517ca25e7a988fc3fbcded353a08adc4.ctex"]
+source_file="res://Asset/Sprite/Object/Simple_Milk_and_grass_item.png"
+dest_files=["res://.godot/imported/Simple_Milk_and_grass_item.png-e0d4e5842700e03b1f0b4738d3ea5571.ctex"]
 
 [params]
 
