@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://dclq365gqmscm"]
 
-[ext_resource type="Texture2D" uid="uid://bsencw62wwm0c" path="res://Sprite/MC/Player.png" id="1_ddo0d"]
+[ext_resource type="Script" uid="uid://twtgpx0ynhvo" path="res://Asset/Script/player.gd" id="1_3eeal"]
+[ext_resource type="Texture2D" uid="uid://bsencw62wwm0c" path="res://Asset/Sprite/MC/Player.png" id="1_ddo0d"]
+[ext_resource type="AudioStream" uid="uid://dpxupfrffrn1n" path="res://Asset/audio/Steps.mp3" id="3_jvxg0"]
+[ext_resource type="AudioStream" uid="uid://diruhbnkyf7mx" path="res://Asset/audio/sword_swing.mp3" id="4_mud5u"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_eukpv"]
 atlas = ExtResource("1_ddo0d")
@@ -17,6 +20,22 @@ region = Rect2(64, 192, 32, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_8ehgy"]
 atlas = ExtResource("1_ddo0d")
 region = Rect2(96, 192, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ddo0d"]
+atlas = ExtResource("1_ddo0d")
+region = Rect2(0, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ws2j7"]
+atlas = ExtResource("1_ddo0d")
+region = Rect2(32, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3d0xk"]
+atlas = ExtResource("1_ddo0d")
+region = Rect2(64, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ahr2"]
+atlas = ExtResource("1_ddo0d")
+region = Rect2(96, 224, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b6iaw"]
 atlas = ExtResource("1_ddo0d")
@@ -193,9 +212,26 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8ehgy")
 }],
-"loop": 1,
+"loop": 0,
 "name": &"attack_down",
-"speed": 5.0
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ddo0d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ws2j7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3d0xk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ahr2")
+}],
+"loop": 0,
+"name": &"attack_right",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -210,9 +246,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_kivci")
 }],
-"loop": 1,
+"loop": 0,
 "name": &"attack_up",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -353,12 +389,23 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Node2D" type="Node2D" unique_id=306146251]
+[node name="Player" type="CharacterBody2D" unique_id=1983575886]
+scale = Vector2(4, 4)
+script = ExtResource("1_3eeal")
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=305808231]
+[node name="Sword" type="AudioStreamPlayer2D" parent="." unique_id=276581429]
+stream = ExtResource("4_mud5u")
+volume_db = -13.77
+pitch_scale = 1.46
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D" unique_id=355852075]
+[node name="Walking" type="AudioStreamPlayer2D" parent="." unique_id=1558971314]
+stream = ExtResource("3_jvxg0")
+volume_db = -9.976
+pitch_scale = 1.37
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=355852075]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_pyvdo")
-animation = &"attack_up"
-frame_progress = 0.28874433
+animation = &"attack_down"
+
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]

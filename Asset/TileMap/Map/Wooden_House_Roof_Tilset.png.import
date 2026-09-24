@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bsencw62wwm0c"
-path="res://.godot/imported/Player.png-40dc17c3a890026507c44f852c626097.ctex"
+uid="uid://iuv874qi4cle"
+path="res://.godot/imported/Wooden_House_Roof_Tilset.png-76ed0566cbb26037b45f1770b799d20b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprite/MC/Player.png"
-dest_files=["res://.godot/imported/Player.png-40dc17c3a890026507c44f852c626097.ctex"]
+source_file="res://Asset/TileMap/Map/Wooden_House_Roof_Tilset.png"
+dest_files=["res://.godot/imported/Wooden_House_Roof_Tilset.png-76ed0566cbb26037b45f1770b799d20b.ctex"]
 
 [params]
 
