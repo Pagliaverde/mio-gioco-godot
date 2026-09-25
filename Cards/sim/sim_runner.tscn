@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://c4rds1mul4t0r"]
+
+[ext_resource type="Script" uid="uid://ctajo5ofnkh6h" path="res://Cards/sim/sim_runner.gd" id="1_runner"]
+
+[node name="SimRunner" type="Node" unique_id=1239515291]
+script = ExtResource("1_runner")
+mode = 7

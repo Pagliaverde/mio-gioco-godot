@@ -7,52 +7,80 @@
 [ext_resource type="Texture2D" uid="uid://cfvo44lxv4rau" path="res://Asset/Sprite/NPC/Slime 01.png" id="5_slime"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_spyqn"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(0, 0, 0, 1)
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(0.701961, 0.709804, 0.741176, 0.85)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.329412, 0.329412, 0.329412, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+border_color = Color(0.447059, 0.454902, 0.494118, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ri4m3"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(0.121569, 0.121569, 0.121569, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 0.823529, 0.415686, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.352941, 0.239216, 0.047059, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+anti_aliasing = true
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0njw"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(0, 0, 0, 1)
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.95)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.6, 0.6, 0.6, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+border_color = Color(0.211765, 0.227451, 0.309804, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 0.945098, 0.827451, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.211765, 0.227451, 0.309804, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+anti_aliasing = true
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qkmqt"]
 bg_color = Color(0, 0, 0, 1)
@@ -67,10 +95,17 @@ corner_radius_bottom_left = 5
 
 [sub_resource type="Theme" id="Theme_qq3yp"]
 default_font_size = 20
+Button/colors/font_color = Color(0.101961, 0.109804, 0.152941, 1)
+Button/colors/font_disabled_color = Color(0.313726, 0.321569, 0.360784, 1)
+Button/colors/font_focus_color = Color(0.078431, 0.086275, 0.121569, 1)
+Button/colors/font_hover_color = Color(0.101961, 0.109804, 0.152941, 1)
+Button/colors/font_pressed_color = Color(0.078431, 0.086275, 0.121569, 1)
+Button/font_sizes/font_size = 24
 Button/styles/disabled = SubResource("StyleBoxFlat_spyqn")
 Button/styles/focus = SubResource("StyleBoxFlat_ri4m3")
-Button/styles/hover = SubResource("StyleBoxFlat_e0njw")
+Button/styles/hover = SubResource("StyleBoxFlat_hover")
 Button/styles/normal = SubResource("StyleBoxFlat_e0njw")
+Button/styles/pressed = SubResource("StyleBoxFlat_ri4m3")
 MarginContainer/constants/margin_bottom = 15
 MarginContainer/constants/margin_left = 30
 MarginContainer/constants/margin_right = 30
@@ -177,17 +212,35 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -540.0
+offset_top = -640.0
 grow_horizontal = 2
 grow_vertical = 0
 
 [node name="ContentLayout" type="VBoxContainer" parent="Balloon/MarginContainer" unique_id=1047291]
 layout_mode = 2
+theme_override_constants/separation = 14
 
 [node name="Spacer" type="Control" parent="Balloon/MarginContainer/ContentLayout" unique_id=1047290]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
+
+[node name="ResponsesAlign" type="HBoxContainer" parent="Balloon/MarginContainer/ContentLayout" unique_id=1047295]
+layout_mode = 2
+alignment = 2
+
+[node name="ResponsesMenu" type="VBoxContainer" parent="Balloon/MarginContainer/ContentLayout/ResponsesAlign" unique_id=1801308483 node_paths=PackedStringArray("response_template")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+script = ExtResource("3_72ixx")
+response_template = NodePath("ResponseExample")
+
+[node name="ResponseExample" type="Button" parent="Balloon/MarginContainer/ContentLayout/ResponsesAlign/ResponsesMenu" unique_id=1446810977]
+layout_mode = 2
+text = "Response example"
 
 [node name="PanelContainer" type="PanelContainer" parent="Balloon/MarginContainer/ContentLayout" unique_id=2145270309]
 custom_minimum_size = Vector2(0, 180)
@@ -261,29 +314,8 @@ polygon = PackedVector2Array(0, 0, 10, 10, 20, 0)
 libraries/ = SubResource("AnimationLibrary_1337t")
 autoplay = &"progress"
 
-[node name="CenterContainer" type="CenterContainer" parent="Balloon" unique_id=1087901387]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="ResponsesMenu" type="VBoxContainer" parent="Balloon/CenterContainer" unique_id=1801308483 node_paths=PackedStringArray("response_template")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 8
-theme_override_constants/separation = 2
-alignment = 1
-script = ExtResource("3_72ixx")
-response_template = NodePath("ResponseExample")
-
-[node name="ResponseExample" type="Button" parent="Balloon/CenterContainer/ResponsesMenu" unique_id=1446810977]
-layout_mode = 2
-text = "Response example"
-
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1162558754]
 unique_name_in_owner = true
 
 [connection signal="gui_input" from="Balloon" to="." method="_on_balloon_gui_input"]
-[connection signal="response_selected" from="Balloon/CenterContainer/ResponsesMenu" to="." method="_on_responses_menu_response_selected"]
+[connection signal="response_selected" from="Balloon/MarginContainer/ContentLayout/ResponsesAlign/ResponsesMenu" to="." method="_on_responses_menu_response_selected"]

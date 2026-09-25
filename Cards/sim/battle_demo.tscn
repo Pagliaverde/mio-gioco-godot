@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8bd3m0d3m0d3"]
+
+[ext_resource type="Script" path="res://Cards/sim/battle_demo.gd" id="1_demo"]
+
+[node name="BattleDemo" type="Node"]
+script = ExtResource("1_demo")

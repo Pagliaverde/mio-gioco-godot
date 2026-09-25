@@ -645,21 +645,27 @@ Apri `Asset/Dialogue/DialoguePannel/balloon.tscn`. La struttura è:
 
 ```
 ExampleBalloon (CanvasLayer, layer 100)
-└── Balloon (Control, tutto lo schermo)
-	└── MarginContainer          ← offset_top = -540 (altezza area dialogo)
-		└── ContentLayout (VBoxContainer)
-			├── Spacer (Control)              ← spinge il resto in basso
-			└── PanelContainer                ← 🔲 la nuvoletta bianca
-				└── MarginContainer
-					└── HBoxContainer
-						├── PortraitFrame (PanelContainer)  ← quadratino grigio
-						│   └── Portrait (TextureRect)      ← immagine
-						├── VBoxContainer
-						│   ├── CharacterLabel (RichTextLabel)  ← nome
-						│   └── DialogueLabel (RichTextLabel)   ← testo
-						└── Control
-							└── Progress (Polygon2D)            ← freccia "avanti"
+├── Balloon (Control, tutto lo schermo)
+│   └── MarginContainer          ← offset_top = -640 (altezza area dialogo)
+│       └── ContentLayout (VBoxContainer, separation 14)
+│           ├── Spacer (Control)              ← spinge il resto in basso
+│           ├── ResponsesAlign (HBoxContainer, alignment = 2)
+│           │   └── ResponsesMenu (VBoxContainer)   ← 🗳 le scelte
+│           │       └── ResponseExample (Button)    ← template nascosto
+│           └── PanelContainer                ← 🔲 la nuvoletta bianca
+│               └── MarginContainer
+│                   └── HBoxContainer
+│                       ├── PortraitFrame (PanelContainer)  ← quadratino grigio
+│                       │   └── Portrait (TextureRect)      ← immagine
+│                       ├── VBoxContainer
+│                       │   ├── CharacterLabel (RichTextLabel)  ← nome
+│                       │   └── DialogueLabel (RichTextLabel)   ← testo
+│                       └── Control
+│                           └── Progress (Polygon2D)            ← freccia "avanti"
+└── AudioStreamPlayer
 ```
+
+> 💡 Le scelte stanno **dentro** il `ContentLayout`, subito **sopra** la nuvoletta e allineate a **destra**. Essendo parte del flusso del `VBoxContainer`, non si sovrappongono mai al box del testo.
 
 ### Modifiche più comuni
 
@@ -673,6 +679,31 @@ ExampleBalloon (CanvasLayer, layer 100)
 | **Altezza dell'area dialogo** | `MarginContainer` → `offset_top` |
 | **Spazio tra ritratto e testo** | `HBoxContainer` → `theme_override_constants/separation` |
 | **Margine interno della nuvoletta** | `PanelContainer/MarginContainer` → override dei margini |
+| **Stile delle scelte** | `Balloon` → `theme` → `Theme_qq3yp` → voci `Button/styles/*` e `Button/colors/*` |
+| **Posizione delle scelte** | `ResponsesAlign` → `alignment` (0 = sinistra, 1 = centro, 2 = destra) |
+| **Larghezza minima delle scelte** | `ResponsesMenu` → `custom_minimum_size.x` |
+| **Spazio tra le scelte** | `ResponsesMenu` → `theme_override_constants/separation` |
+
+### Il menù delle scelte (risposte multiple)
+
+Quando una battuta ha delle opzioni (`- ...`), il gioco mostra i pulsanti in **basso a destra, sopra la nuvoletta del dialogo**.
+
+Come è fatto:
+
+- **`ResponsesAlign`** (`HBoxContainer` con `alignment = 2`) spinge il blocco tutto a destra.
+- **`ResponsesMenu`** (`VBoxContainer`) impila i pulsanti dal basso verso l'alto, tutti della **stessa larghezza** (= quella dell'opzione più lunga, minimo 360 px).
+- **`ResponseExample`** è il **template**: viene nascosto e duplicato dal plugin per ogni opzione.
+
+Stili dei pulsanti (nel tema `Theme_qq3yp`):
+
+| Stato | Aspetto |
+|---|---|
+| `normal` | bianco, angoli arrotondati 18, testo scuro, ombra morbida |
+| `hover` | bianco crema (evidenzia al passaggio del mouse) |
+| `focus` / `pressed` | **ambra/oro** con bordo scuro — indica la scelta selezionata con la tastiera |
+| `disabled` | grigio, testo sbiadito (opzioni non disponibili) |
+
+> ⚠️ Il template **non deve** essere un nodo `PanelContainer`: il plugin lo duplica e ne imposta `text`. Se vuoi un aspetto diverso, modifica gli stili `Button/*` nel tema.
 
 ### Il prompt "E" sull'NPC
 
