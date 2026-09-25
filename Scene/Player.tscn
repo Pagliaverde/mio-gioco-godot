@@ -389,8 +389,12 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pyvdo"]
+size = Vector2(20, 21.25)
+
 [node name="Player" type="CharacterBody2D" unique_id=1983575886]
 scale = Vector2(4, 4)
+motion_mode = 1
 script = ExtResource("1_3eeal")
 
 [node name="Sword" type="AudioStreamPlayer2D" parent="." unique_id=276581429]
@@ -407,5 +411,9 @@ pitch_scale = 1.37
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_pyvdo")
 animation = &"attack_down"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2108634775]
+position = Vector2(-1.5, -1.625)
+shape = SubResource("RectangleShape2D_pyvdo")
 
 [connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]
