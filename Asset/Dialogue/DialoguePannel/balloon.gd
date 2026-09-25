@@ -20,8 +20,23 @@ extends CanvasLayer
 ## The action to use to skip typing the dialogue
 @export var skip_action: StringName = &"ui_cancel"
 
+## Fallback portraits, keyed by character name. Each value can be a [Texture2D]
+## or a path to a texture (as a [String]). Lines can also override this with a
+## [code][#portrait=res://...][/code] tag.
+@export var character_portraits: Dictionary = {}
+
+## The size (in pixels) of the square containing the speaking character's
+## portrait. Set to [code]Vector2.ZERO[/code] to hide it completely.
+@export var portrait_size: Vector2 = Vector2(140, 140)
+
 ## A sound player for voice lines (if they exist).
 @onready var audio_stream_player: AudioStreamPlayer = %AudioStreamPlayer
+
+## The image of the character that is currently speaking.
+@onready var portrait: TextureRect = %Portrait
+
+## The square frame (with a grey background) sitting behind the portrait.
+@onready var portrait_frame: PanelContainer = %PortraitFrame
 
 ## Temporary game states
 var temporary_game_states: Array = []
@@ -134,6 +149,12 @@ func apply_dialogue_line() -> void:
 	character_label.visible = not dialogue_line.character.is_empty()
 	character_label.text = tr(dialogue_line.character, "dialogue")
 
+	# Show the portrait of whoever is speaking
+	var portrait_texture: Texture2D = _get_portrait_for(dialogue_line)
+	portrait.texture = portrait_texture
+	portrait_frame.visible = portrait_texture != null
+	portrait_frame.custom_minimum_size = portrait_size if portrait_frame.visible else Vector2.ZERO
+
 	dialogue_label.hide()
 	dialogue_label.dialogue_line = dialogue_line
 
@@ -171,6 +192,31 @@ func apply_dialogue_line() -> void:
 ## Go to the next line
 func next(next_id: String) -> void:
 	dialogue_line = await dialogue_resource.get_next_dialogue_line(next_id, temporary_game_states)
+
+
+## Work out which portrait to show for a given line. An explicit
+## [code][#portrait=...][/code] tag wins, otherwise we fall back to the
+## portrait registered for the character in [member character_portraits].
+func _get_portrait_for(line: DialogueLine) -> Texture2D:
+	var tag_value: String = line.get_tag_value("portrait")
+	if not tag_value.is_empty():
+		return _load_portrait(tag_value)
+
+	var fallback: Variant = character_portraits.get(line.character, null)
+	if fallback is Texture2D:
+		return fallback
+	if fallback is String:
+		return _load_portrait(fallback)
+
+	return null
+
+
+## Load a portrait texture from a path, warning if it is missing.
+func _load_portrait(path: String) -> Texture2D:
+	if not ResourceLoader.exists(path):
+		push_warning("Dialogue balloon: no portrait found at '%s'" % path)
+		return null
+	return load(path) as Texture2D
 
 
 #region Signals

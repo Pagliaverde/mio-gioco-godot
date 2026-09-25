@@ -207,9 +207,23 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pyvdo"]
 size = Vector2(17.25, 16.75)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 20.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompt"]
+bg_color = Color(0.05, 0.06, 0.09, 0.65)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [node name="Slime" type="CharacterBody2D" unique_id=2086001802]
 scale = Vector2(4, 4)
-collision_layer = 2
 motion_mode = 1
 script = ExtResource("1_7nfsk")
 
@@ -221,3 +235,38 @@ frame_progress = 0.88608956
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1077266575]
 position = Vector2(-0.125, 0.125)
 shape = SubResource("RectangleShape2D_pyvdo")
+
+[node name="InteractionArea" type="Area2D" parent="." unique_id=1047311 groups=["interactable"]]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea" unique_id=1047312]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="Prompt" type="Node2D" parent="InteractionArea" unique_id=1047313]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.25, 0.25)
+
+[node name="Background" type="Panel" parent="InteractionArea/Prompt" unique_id=1047315]
+offset_left = -22.0
+offset_top = -22.0
+offset_right = 22.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_prompt")
+
+[node name="Label" type="Label" parent="InteractionArea/Prompt" unique_id=1047314]
+offset_left = -22.0
+offset_top = -22.0
+offset_right = 22.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.7)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 22
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1
+horizontal_alignment = 1
+vertical_alignment = 1

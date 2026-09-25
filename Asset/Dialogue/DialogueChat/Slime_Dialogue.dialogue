@@ -1,4 +1,24 @@
 ~ start
-Slime: Ciao! Sono uno slime.
-Slime: Posso muovermi in giro a caso!
+Slime: Glub glub! Ciao avventuriero! Ti posso aiutare?
+
+- Ciao! Cosa fai di bello qui attorno?
+	Slime: Me ne vado a spasso nell'erba! È una bellissima giornata per saltellare.
+	=> domande_extra
+
+- Non ti avvicinare o ti trasformo in gelatina!
+	Slime: Ehi, calmati! Non voglio fare del male a nessuno, sono uno slime pacifico!
+	=> END
+- Devo andare, ci vediamo!
+	=> fine
+
+~ domande_extra
+Slime: Vuoi chiedermi qualcos'altro?
+- Ti va di fare due passi insieme?
+	Slime: Volentieri! Ma io vado un po' lento, abbi pazienza!
+	=> fine
+- No, era tutto.
+	=> fine
+
+~ fine
+Slime: Ciao ciao! Fai buon viaggio!
 => END
