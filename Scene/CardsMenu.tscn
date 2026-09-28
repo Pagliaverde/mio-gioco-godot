@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://m2lx1xjl0es1"]
+
+[ext_resource type="FontFile" uid="uid://mhdu4j5g7l7u" path="res://GrapeSoda.ttf" id="1_bm4eo"]
+
+[node name="CardsMenu" type="Control" unique_id=1086640494]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackGround" type="Panel" parent="." unique_id=236930347]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=14747528]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -178.0
+offset_top = 61.0
+offset_right = 182.0
+offset_bottom = 168.0
+grow_horizontal = 2
+
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=383800298]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.39215687)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 5
+theme_override_fonts/font = ExtResource("1_bm4eo")
+theme_override_font_sizes/font_size = 120
+text = "GODOTTEST"
+
+[node name="Label2" type="Label" parent="VBoxContainer" unique_id=408980611]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_colors/font_color = Color(0.7279856, 0.7279857, 0.7279856, 1)
+theme_override_fonts/font = ExtResource("1_bm4eo")
+theme_override_font_sizes/font_size = 36
+text = "Un card game a turni"
