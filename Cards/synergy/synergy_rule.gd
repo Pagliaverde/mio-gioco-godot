@@ -19,6 +19,7 @@
 ## # Almeno 2 carte Natura: cura l'8% della vita massima
 ## ...
 ## [/codeblock]
+@tool
 class_name SynergyRule extends Resource
 
 

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://84ow4ym0rg7f"]
+
+[ext_resource type="Script" uid="uid://3idb4opo5a6b" path="res://Cards/effects/card_effect.gd" id="1_3c507"]
+[ext_resource type="Script" uid="uid://cu87a6gywiki3" path="res://Cards/effects/deal_damage_effect.gd" id="2_muxbv"]
+[ext_resource type="Script" uid="uid://bk2vjwo54ir18" path="res://Cards/effects/apply_status_effect.gd" id="3_2bny2"]
+[ext_resource type="Script" uid="uid://xg4x0rtp6kys" path="res://Cards/data/card_data.gd" id="4_4lrgm"]
+
+[sub_resource type="Resource" id="Resource_3c507"]
+script = ExtResource("2_muxbv")
+amount = 50
+
+[sub_resource type="Resource" id="Resource_muxbv"]
+script = ExtResource("3_2bny2")
+status = 2
+stacks = 9
+
+[resource]
+script = ExtResource("4_4lrgm")
+id = &"ice_glacier_tomb"
+display_name = "Tomba del Ghiacciaio"
+cost = 18
+element = 2
+rarity = 3
+effects = Array[ExtResource("1_3c507")]([SubResource("Resource_3c507"), SubResource("Resource_muxbv")])
+tags = PackedStringArray("legendary", "control")

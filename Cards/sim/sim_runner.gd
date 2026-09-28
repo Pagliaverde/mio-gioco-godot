@@ -135,15 +135,15 @@ func _run_risk_profiles(simulator: BattleSimulator) -> void:
 ## E' la modalita' da usare quando il bilanciamento non convince.
 func _run_tuning(simulator: BattleSimulator) -> void:
 	# Griglia: si provano tutte le combinazioni di questi due valori.
-	var mana_values: Array = [12, 14, 16, 18, 20]
-	var health_values: Array = [60, 80, 100, 120]
+	var mana_values: Array = [40, 50, 60, 70]
+	var health_values: Array = [300, 400, 600]
 
 	var per_combo: int = maxi(battle_count / 4, 60)
 	print(simulator.tune_mana_and_health(mana_values, health_values, per_combo))
 
 	# E quanto compenso serve a chi gioca per secondo?
 	print("")
-	print(simulator.tune_second_player_bonus([0, 8, 12, 16, 20, 25, 30], maxi(battle_count / 3, 80)))
+	print(simulator.tune_second_player_bonus([0, 20, 30, 40, 50, 60, 80], maxi(battle_count / 3, 80)))
 
 
 ## Prova anche diverse combinazioni di sinergie: quanto devono essere

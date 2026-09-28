@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://du8aylx8rmdfe"]
+
+[ext_resource type="Script" uid="uid://3idb4opo5a6b" path="res://Cards/effects/card_effect.gd" id="1_hg0g8"]
+[ext_resource type="Script" uid="uid://cu87a6gywiki3" path="res://Cards/effects/deal_damage_effect.gd" id="2_pi5g0"]
+[ext_resource type="Script" uid="uid://bk2vjwo54ir18" path="res://Cards/effects/apply_status_effect.gd" id="3_igcc5"]
+[ext_resource type="Script" uid="uid://xg4x0rtp6kys" path="res://Cards/data/card_data.gd" id="4_8jc2t"]
+
+[sub_resource type="Resource" id="Resource_hg0g8"]
+script = ExtResource("2_pi5g0")
+amount = 44
+
+[sub_resource type="Resource" id="Resource_pi5g0"]
+script = ExtResource("3_igcc5")
+stacks = 9
+
+[resource]
+script = ExtResource("4_8jc2t")
+id = &"fire_inferno"
+display_name = "Inferno"
+cost = 18
+element = 1
+rarity = 2
+effects = Array[ExtResource("1_hg0g8")]([SubResource("Resource_hg0g8"), SubResource("Resource_pi5g0")])
+tags = PackedStringArray()

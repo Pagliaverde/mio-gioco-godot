@@ -64,11 +64,7 @@ func apply_effects(ctx: EffectContext) -> void:
 func power_score() -> float:
 	if data == null:
 		return 0.0
-	var total: float = 0.0
-	for effect: CardEffect in data.effects:
-		if effect != null:
-			total += effect.power_score(data)
-	return total
+	return data.power_score()
 
 
 ## Rapporto potenza/costo. Sopra 1.5 = carta efficiente.

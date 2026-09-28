@@ -2,6 +2,7 @@
 ##
 ## Serve perche' nell'inspector e' molto piu' comodo scrivere
 ## [code]Inferno x3[/code] che trascinare la stessa carta tre volte.
+@tool
 class_name DeckEntry extends Resource
 
 

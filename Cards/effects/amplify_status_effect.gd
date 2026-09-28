@@ -11,6 +11,7 @@
 ## [b]Esempio:[/b] giochi "Ricetta Tossica" (+3) insieme a Dardo Tossico (4 poison)
 ## e Nube Venefica (8 poison) → applichi 7 + 11 = 18 Veleno invece di 12. Con
 ## un decadimento di 1 per turno, sono 3 turni di danno in piu'.
+@tool
 class_name AmplifyStatusEffect extends CardEffect
 
 

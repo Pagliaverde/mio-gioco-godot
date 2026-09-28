@@ -3,6 +3,7 @@
 ## Non contiene logica: serve solo a evitare di ripetere le stesse
 ## definizioni in ogni file e a dare un unico posto dove aggiungere
 ## un nuovo elemento, status o rarita'.
+@tool
 class_name CardTypes extends RefCounted
 
 
@@ -19,19 +20,27 @@ enum Element {
 }
 
 ## Quanto e' rara e potente una carta. Usata dal negozio e dai pacchetti.
+##
+## [b]La rarita' non e' cosmetica: e' il modello di potenza del gioco.[/b]
+## Ogni fascia ha un'efficienza attesa e una banda di costo, definite in
+## [RarityProfile] / [RarityTable]. Salendo di rarita' la carta rende di piu'
+## e costa meno, fino all'[b]Unica[/b], che e' il vertice della collezione.
+##
+## Vedi [method RarityTable.create_default] per i numeri consigliati.
 enum Rarity {
-	COMMON,
-	UNCOMMON,
-	RARE,
-	EPIC,
-	LEGENDARY,
+	BASE,       ## Carte di partenza: costose e deboli, ma illimitate.
+	RARE,       ## Prima fascia "pullata": costo alto, resa bassa.
+	EPIC,       ## Buon rendimento a costo ragionevole.
+	LEGENDARY,  ## Economica e forte: una sola copia per mazzo.
+	UNIQUE,     ## Il vertice: costa poco e fa malissimo.
 }
 
 ## Effetti persistenti applicati a un giocatore.
 ## Ogni status ha un comportamento diverso deciso da [BattleBalance].
 enum StatusType {
-	BURN,      ## Danno nel tempo che si affievolisce.
-	POISON,    ## Danno nel tempo che NON si affievolisce (si accumula).
+	BURN,      ## Danno nel tempo che si affievolisce. Strati piccoli, dura poco.
+	POISON,    ## Danno nel tempo con strati grandi: dura molto. Decade anche lui
+	           ## (vedi [code]poison_decay[/code]), altrimenti dominerebbe il gioco.
 	CHILL,     ## Riduce il mana disponibile nel turno.
 	EMPOWER,   ## Aumenta in percentuale il danno inflitto.
 	REGEN,     ## Cura nel tempo.
@@ -104,11 +113,11 @@ const STATUS_NAMES: Dictionary = {
 
 ## Nomi leggibili delle rarita'.
 const RARITY_NAMES: Dictionary = {
-	Rarity.COMMON: "Comune",
-	Rarity.UNCOMMON: "Non comune",
+	Rarity.BASE: "Base",
 	Rarity.RARE: "Rara",
 	Rarity.EPIC: "Epica",
 	Rarity.LEGENDARY: "Leggendaria",
+	Rarity.UNIQUE: "Unica",
 }
 
 

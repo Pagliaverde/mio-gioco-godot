@@ -3,6 +3,7 @@
 ## Diverso da [TurnDamageBuffEffect]: quello moltiplica (ottimo quando hai
 ## molte carte forti), questo somma (ottimo quando giochi tante carte deboli).
 ## Ecco due carte di supporto con identita' diverse.
+@tool
 class_name FlatDamageBonusEffect extends CardEffect
 
 

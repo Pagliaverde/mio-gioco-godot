@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://ctdm560jjiqbn"]
+
+[ext_resource type="Script" uid="uid://3idb4opo5a6b" path="res://Cards/effects/card_effect.gd" id="1_enqnq"]
+[ext_resource type="Script" uid="uid://bk2vjwo54ir18" path="res://Cards/effects/apply_status_effect.gd" id="2_qvdr5"]
+[ext_resource type="Script" uid="uid://xg4x0rtp6kys" path="res://Cards/data/card_data.gd" id="3_6443x"]
+
+[sub_resource type="Resource" id="Resource_enqnq"]
+script = ExtResource("2_qvdr5")
+status = 1
+stacks = 27
+
+[resource]
+script = ExtResource("3_6443x")
+id = &"poison_venom_cloud"
+display_name = "Nube Venefica"
+cost = 24
+element = 3
+rarity = 1
+effects = Array[ExtResource("1_enqnq")]([SubResource("Resource_enqnq")])
+tags = PackedStringArray()

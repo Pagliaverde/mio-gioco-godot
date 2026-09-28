@@ -10,6 +10,7 @@
 ## FileSystem > tasto destro > Nuova risorsa > CardData
 ## [/codeblock]
 ## e salvala in [code]res://Cards/data/cards/[/code].
+@tool
 class_name CardData extends Resource
 
 
@@ -31,8 +32,12 @@ class_name CardData extends Resource
 ## Elemento di appartenenza: decide sinergie e (in futuro) resistenze.
 @export var element: CardTypes.Element = CardTypes.Element.NONE
 
-## Rarita': influisce sulla potenza e sulla probabilita' nei pacchetti.
-@export var rarity: CardTypes.Rarity = CardTypes.Rarity.COMMON
+## Rarita': decide quanto la carta [b]deve[/b] rendere e quanto puo' costare.
+##
+## Non e' cosmetica: [RarityTable] definisce, per ogni fascia, un'efficienza
+## attesa e una banda di costo. [CardValidator] controlla che la carta rispetti
+## il budget della sua rarita'.
+@export var rarity: CardTypes.Rarity = CardTypes.Rarity.BASE
 
 @export_group("Contenuto")
 
@@ -76,6 +81,27 @@ func generate_description() -> String:
 ## Colore del bordo/etichetta, derivato dall'elemento.
 func get_color() -> Color:
 	return CardTypes.element_color(element)
+
+
+## Somma della potenza dichiarata dagli effetti.
+##
+## E' la misura condivisa da tutto il progetto: 1 punto di danno = 1.0,
+## 1 di scudo = 0.5, 1 di cura = 0.6, e cosi' via (vedi [method CardEffect.power_score]).
+## La usano il modello di rarita', il validatore e il simulatore.
+func power_score() -> float:
+	var total: float = 0.0
+	for effect: CardEffect in effects:
+		if effect != null:
+			total += effect.power_score(self)
+	return total
+
+
+## Potenza per punto di mana. Il valore atteso dipende dalla rarita':
+## vedi [member RarityProfile.power_per_mana].
+func efficiency() -> float:
+	if cost <= 0:
+		return 0.0
+	return power_score() / float(cost)
 
 
 ## Rappresentazione breve per i log.

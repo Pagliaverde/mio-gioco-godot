@@ -1,0 +1,321 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Cards/table/battle_table.gd" id="1_table"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enemy"]
+bg_color = Color(0.14, 0.11, 0.13, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.62, 0.28, 0.28, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_player"]
+bg_color = Color(0.10, 0.13, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.30, 0.55, 0.72, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_result"]
+bg_color = Color(0.11, 0.11, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.75, 0.65, 0.35, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 40.0
+content_margin_top = 28.0
+content_margin_right = 40.0
+content_margin_bottom = 28.0
+
+[node name="BattleTable" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_table")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.06, 0.07, 0.10, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
+
+[node name="Root" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TopBar" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TurnLabel" type="Label" parent="Margin/Root/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Turno 1"
+
+[node name="NewGameButton" type="Button" parent="Margin/Root/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+text = "Nuova partita"
+
+[node name="EnemyPanel" type="PanelContainer" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_enemy")
+
+[node name="EnemyBox" type="VBoxContainer" parent="Margin/Root/EnemyPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnemyHeader" type="HBoxContainer" parent="Margin/Root/EnemyPanel/EnemyBox"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="EnemyName" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Avversario"
+
+[node name="EnemyMana" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+text = "Mana 0"
+
+[node name="EnemyShield" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.55, 0.78, 0.98, 1)
+text = "Scudo 0"
+
+[node name="EnemyHealthRow" type="HBoxContainer" parent="Margin/Root/EnemyPanel/EnemyBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EnemyHealth" type="ProgressBar" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHealthRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 400.0
+value = 400.0
+show_percentage = false
+
+[node name="EnemyHealthText" type="Label" parent="Margin/Root/EnemyPanel/EnemyBox/EnemyHealthRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+horizontal_alignment = 2
+text = "400 / 400"
+
+[node name="EnemyStatuses" type="HBoxContainer" parent="Margin/Root/EnemyPanel/EnemyBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="EnemyPlayed" type="HBoxContainer" parent="Margin/Root/EnemyPanel/EnemyBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Middle" type="VBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RiskLabel" type="Label" parent="Margin/Root/Middle"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+text = ""
+
+[node name="LogScroll" type="ScrollContainer" parent="Margin/Root/Middle"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LogLabel" type="RichTextLabel" parent="Margin/Root/Middle/LogScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="PlayerPanel" type="PanelContainer" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_player")
+
+[node name="PlayerBox" type="VBoxContainer" parent="Margin/Root/PlayerPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PlayerHeader" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="PlayerName" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Tu"
+
+[node name="PlayerMana" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+text = "Mana 0"
+
+[node name="PlayerShield" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.55, 0.78, 0.98, 1)
+text = "Scudo 0"
+
+[node name="PlayerHealthRow" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlayerHealth" type="ProgressBar" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHealthRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 400.0
+value = 400.0
+show_percentage = false
+
+[node name="PlayerHealthText" type="Label" parent="Margin/Root/PlayerPanel/PlayerBox/PlayerHealthRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+horizontal_alignment = 2
+text = "400 / 400"
+
+[node name="PlayerStatuses" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="PlayerPlayed" type="HBoxContainer" parent="Margin/Root/PlayerPanel/PlayerBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Actions" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="DrawButton" type="Button" parent="Margin/Root/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 62)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 24
+text = "PESCA  (Spazio)"
+
+[node name="StopButton" type="Button" parent="Margin/Root/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 62)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 24
+text = "STOP  (S)"
+
+[node name="ResultOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="ResultOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="ResultBox" type="PanelContainer" parent="ResultOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_result")
+
+[node name="ResultLabel" type="Label" parent="ResultOverlay/ResultBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 46
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "HAI VINTO!"

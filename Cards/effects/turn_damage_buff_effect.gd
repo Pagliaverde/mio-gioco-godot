@@ -6,6 +6,7 @@
 ## [b]Nota:[/b] non e' "potenzia la prossima carta". Essendo la risoluzione
 ## simultanea, potenziare "la prossima" non avrebbe senso: qui il bonus vale
 ## per tutto il turno. E' il modo giusto di fare sinergie in questo sistema.
+@tool
 class_name TurnDamageBuffEffect extends CardEffect
 
 
@@ -24,9 +25,12 @@ func describe() -> String:
 
 
 ## Un +N% vale in proporzione a quanto danno fai nel turno, quindi il valore
-## reale dipende dal mazzo. La stima usa un turno medio da circa 2 carte offensive:
-##   +25% su ~25 danno = +6 danno effettivo
-## Per questo il moltiplicatore e' 0.3 e non 0.15: sottostimarlo farebbe
-## sembrare deboli delle carte che in realta' sono forti.
+## reale dipende dal mazzo [b]e dalla scala dei numeri[/b].
+##
+## [b]Nota sulla scala:[/b] questa e' l'unica formula di potenza che non si
+## adatta da sola ai numeri del gioco, perche' ha per parametro una percentuale
+## (invariante) ma il suo valore dipende dal danno per turno (che cambia).
+## Con un turno da ~80 danno (scala attuale), +25% vale +20 danno: per questo
+## il coefficiente e' 0.8.
 func power_score(_card: CardData) -> float:
-	return float(percent) * 0.3
+	return float(percent) * 0.8

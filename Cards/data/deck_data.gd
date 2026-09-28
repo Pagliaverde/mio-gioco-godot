@@ -6,6 +6,7 @@
 ##
 ## Il mazzo e' un [b]ciclo infinito[/b]: le carte giocate tornano nel mazzo,
 ## che viene rimescolato a fine turno. Un mazzo non si esaurisce mai davvero.
+@tool
 class_name DeckData extends Resource
 
 
@@ -100,8 +101,9 @@ func lowest_cost() -> int:
 
 ## Quanto mana puoi spendere in totale senza nessun rischio di bust.
 ##
-## Con carte fino a 9 mana, puoi spenderne 8 senza rischi: il nono mana
-## e' il primo che puo' farti pescare una carta troppo cara.
+## Con carte fino a 30 mana e 50 mana per turno, puoi spenderne 29 senza
+## rischi: il trentesimo mana e' il primo che puo' farti pescare una carta
+## troppo cara.
 func safe_spending_budget() -> int:
 	return maxi(highest_cost() - 1, 0)
 

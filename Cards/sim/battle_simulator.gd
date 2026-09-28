@@ -1007,25 +1007,26 @@ func audit_cards() -> String:
 	lines.append("  ANALISI CARTE  (potenza stimata per punto di mana)")
 	lines.append(sep)
 
-	# Raggruppa le carte per tier di costo, che e' la struttura del gioco.
-	var by_tier: Dictionary = {}
+	# Raggruppa per rarita': nel nuovo modello e' la rarita' a definire
+	# quanta potenza una carta deve avere, non il costo.
+	var table: RarityTable = RarityTable.load_default()
+	var by_rarity: Dictionary = {}
 	for card: CardData in CardLibrary.build_all():
-		var tier: int = _cost_tier(card.cost)
-		if not by_tier.has(tier):
-			by_tier[tier] = []
-		by_tier[tier].append(card)
+		if not by_rarity.has(card.rarity):
+			by_rarity[card.rarity] = []
+		by_rarity[card.rarity].append(card)
 
-	var tier_order: Array = by_tier.keys()
-	tier_order.sort()
-
-	for raw_tier: Variant in tier_order:
-		var tier: int = raw_tier
-		var cards: Array = by_tier[tier]
+	for profile: RarityProfile in table.ordered():
+		var cards: Array = by_rarity.get(profile.rarity, [])
+		if cards.is_empty():
+			continue
 
 		lines.append("")
-		lines.append("  ── %s ──" % _tier_name(tier))
-		lines.append("  %-24s %5s %8s %8s %6s  %s" % [
-			"CARTA", "COSTO", "POTENZA", "RAPPORTO", "ESITO", "CATEGORIA",
+		lines.append("  ── %s (%.1f potenza/mana, costo %s) ──" % [
+			profile.display_name, profile.power_per_mana, profile.band_label(),
+		])
+		lines.append("  %-24s %5s %8s %8s %8s  %s" % [
+			"CARTA", "COSTO", "POTENZA", "BUDGET", "ESITO", "CATEGORIA",
 		])
 		lines.append("-".repeat(94))
 
@@ -1035,60 +1036,36 @@ func audit_cards() -> String:
 
 		for raw_card: Variant in cards:
 			var card: CardData = raw_card
-			var instance: CardInstance = CardInstance.new(card)
-			var power: float = instance.power_score()
-			var cost: float = maxf(float(card.cost), 1.0)
-			var ratio: float = power / cost
+			var power: float = card.power_score()
+			var budget: float = profile.power_budget(card.cost)
+			var ratio: float = power / maxf(budget, 0.01)
 			var category: String = _categorize(card)
 
-			# Il verdetto ha senso solo per le carte offensive.
-			var verdict: String = "—"
-			if category == "danno":
-				if ratio > 3.0:
-					verdict = "FORTE"
-				elif ratio < 1.4:
-					verdict = "debole"
-				else:
-					verdict = "ok"
+			var verdict: String = "ok"
+			if ratio > 1.25:
+				verdict = "FORTE"
+			elif ratio < 0.75:
+				verdict = "debole"
 
-			lines.append("  %-24s %5d %8.1f %8.2f %6s  %s" % [
-				card.display_name, card.cost, power, ratio, verdict, category,
+			lines.append("  %-24s %5d %8.1f %8.1f %8s  %s" % [
+				card.display_name, card.cost, power, budget, verdict, category,
 			])
 
 	lines.append("")
 	lines.append(sep)
-	lines.append("  CATEGORIE: non sono confrontabili tra loro.")
-	lines.append("    danno   = carte offensive: il rapporto deve stare tra 1.4 e 3.0")
-	lines.append("    difesa  = scudo e cura: potenza bassa e' normale, servono a sopravvivere")
-	lines.append("    status  = Brucia/Veleno/Congelato: danno differito, non catturato bene dal numero")
-	lines.append("    buff    = moltiplicatori: valgono in proporzione a quante carte giochi")
+	lines.append("  COME LEGGERE: ESITO confronta la POTENZA col BUDGET della rarita'.")
+	lines.append("    ok      = entro il 25% del budget (la carta rispetta la sua fascia)")
+	lines.append("    FORTE   = oltre il 125% del budget: troppo forte per quella rarita'")
+	lines.append("    debole  = sotto il 75% del budget: non sfrutta la sua fascia")
 	lines.append("")
-	lines.append("  ⚠ Il Veleno e' il caso piu' sottostimato: non decade mai, quindi il suo")
-	lines.append("    valore reale cresce ogni turno. Il rapporto mostrato e' il minimo.")
+	lines.append("  CATEGORIE: non sono confrontabili tra loro.")
+	lines.append("    danno   = carte offensive")
+	lines.append("    difesa  = scudo e cura: potenza bassa e' normale, servono a sopravvivere")
+	lines.append("    status  = Brucia/Veleno/Congelato: danno differito")
+	lines.append("    buff    = moltiplicatori: valgono in proporzione a quante carte giochi")
 	lines.append(sep)
 
 	return "\n".join(lines)
-
-
-## Determina il tier di costo di una carta (la struttura del gioco).
-func _cost_tier(cost: int) -> int:
-	if cost <= 4:
-		return 1
-	elif cost <= 6:
-		return 2
-	return 3
-
-
-## Nome leggibile di un tier.
-func _tier_name(tier: int) -> String:
-	match tier:
-		1:
-			return "SETUP (3-4 mana) — nessun danno, difesa e preparazione"
-		2:
-			return "ATTrito (5-6 mana) — danno lento: Brucia e Veleno"
-		3:
-			return "BURST (7-9 mana) — danno immediato, rischioso"
-	return "?"
 
 
 ## In che categoria rientra una carta, guardando i suoi effetti.

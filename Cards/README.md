@@ -600,7 +600,7 @@ In `BattleBalance`:
 
 ```gdscript
 burn_decay = 1        # 0 = la Brucia non si esaurisce mai
-poison_decay = 0      # il Veleno per design non si esaurisce
+poison_decay = 1      # ⚠ NON metterlo a 0: il Veleno dominerebbe (vedi sopra)
 chill_decay = 1
 empower_decay = 1
 regen_decay = 1

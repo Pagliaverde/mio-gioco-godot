@@ -3,6 +3,7 @@
 ## La cura arriva sempre [b]dopo[/b] il danno nel calcolo del turno, quindi
 ## curarsi non ti salva da un colpo letale micidiale nello stesso turno:
 ## e' una scelta strategica, non un pulsante di emergenza.
+@tool
 class_name HealEffect extends CardEffect
 
 

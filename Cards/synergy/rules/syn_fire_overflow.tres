@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SynergyRule" format=3 uid="uid://dunout6o0msl1"]
+
+[ext_resource type="Script" uid="uid://bqnfaiauobldi" path="res://Cards/synergy/synergy_rule.gd" id="1_ahp4s"]
+
+[resource]
+script = ExtResource("1_ahp4s")
+id = &"syn_fire_overflow"
+display_name = "Fuoco Divampante"
+min_primary = 2
+damage_multiplier = 1.4
+applies_to_element = 1

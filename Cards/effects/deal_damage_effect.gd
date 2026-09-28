@@ -4,6 +4,7 @@
 ## - sinergie di elemento (es. "3+ carte Fuoco: +50% danno Fuoco")
 ## - carte di supporto (es. "Grido di battaglia: +25% danno")
 ## - critico da bust dell'avversario
+@tool
 class_name DealDamageEffect extends CardEffect
 
 

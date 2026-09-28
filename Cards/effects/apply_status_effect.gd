@@ -2,6 +2,7 @@
 ##
 ## Il comportamento di ogni status nel tempo e' deciso da [BattleBalance]:
 ## alcuni si affievoliscono, altri (come il Veleno) si accumulano per sempre.
+@tool
 class_name ApplyStatusEffect extends CardEffect
 
 

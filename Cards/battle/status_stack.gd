@@ -9,7 +9,9 @@ var status: CardTypes.StatusType = CardTypes.StatusType.BURN
 var stacks: int = 0
 
 ## Quanti strati si perdono a ogni turno.
-## 0 significa che lo status [b]non si esaurisce mai[/b] (e' il caso del Veleno).
+## 0 significa che lo status [b]non si esaurisce mai[/b].
+## [b]Non usarlo con il Veleno:[/b] un danno che cresce senza limite domina
+## qualsiasi partita lunga (vedi [member BattleBalance.poison_decay]).
 var decay_per_turn: int = 1
 
 

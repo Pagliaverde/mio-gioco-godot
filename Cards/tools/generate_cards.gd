@@ -9,17 +9,18 @@ extends EditorScript
 #   3. Controlla il pannello Output
 #
 # Crea:
-#   res://Cards/data/cards/       un .tres per ogni carta
-#   res://Cards/data/decks/       i mazzi di esempio
-#   res://Cards/synergy/rules/    le regole di sinergia
+#   res://Cards/data/cards/<elemento>/   un .tres per ogni carta, diviso per elemento
+#   res://Cards/data/decks/              i mazzi di esempio
+#   res://Cards/synergy/rules/           le regole di sinergia
+#   res://Cards/data/card_database.tres  l'indice di tutte le carte
 #
-# Nota: i file generati sono copie. Modificarli NON cambia CardLibrary,
-# che resta il riferimento usato dal simulatore. Se vuoi che delle modifiche
-# fatte a mano abbiano effetto, sposta il mazzo sui .tres generati e smetti
-# di usare CardLibrary.
+# Nota: le carte vengono SOVRASCRITTE dalla libreria in codice. Se vuoi
+# modificare una carta dall'inspector, non rieseguire questo tool: usa
+# rebuild_database.gd per aggiornare solo l'indice, e crea le carte nuove
+# dal dock "Carte".
 
 
-const CARDS_DIR: String = "res://Cards/data/cards"
+const CARDS_DIR: String = CardDatabase.CARDS_ROOT
 const DECKS_DIR: String = "res://Cards/data/decks"
 const SYNERGY_DIR: String = "res://Cards/synergy/rules"
 
@@ -29,7 +30,7 @@ func _run() -> void:
 	print("=== GENERAZIONE RISORSE CARTE ===")
 	print("")
 
-	_ensure_dir(CARDS_DIR)
+	CardDatabase.ensure_folders(CARDS_DIR)
 	_ensure_dir(DECKS_DIR)
 	_ensure_dir(SYNERGY_DIR)
 
@@ -37,13 +38,22 @@ func _run() -> void:
 	var deck_count: int = _write_decks()
 	var synergy_count: int = _write_synergies()
 
+	# Aggiorna e salva l'indice, cosi' il database riflette subito i file scritti.
+	var database: CardDatabase = CardDatabase.new()
+	var indexed: int = database.rebuild_from_folder(CARDS_DIR)
+	var index_error: Error = database.save_default()
+	if index_error != OK:
+		push_error("Impossibile salvare l'indice carte (codice %d)." % index_error)
+
 	print("")
-	print("Fatto: %d carte, %d mazzi, %d sinergie." % [card_count, deck_count, synergy_count])
-	print("Puoi ora modificarli dall'inspector di Godot.")
+	print("Fatto: %d carte, %d mazzi, %d sinergie, %d carte indicizzate." % [
+		card_count, deck_count, synergy_count, indexed,
+	])
+	print("Puoi ora modificarle dall'inspector di Godot.")
 	print("")
 
 
-## Scrive un .tres per ogni carta e ritorna quante ne ha salvate.
+## Scrive un .tres per ogni carta, dentro la sottocartella del suo elemento.
 func _write_cards() -> int:
 	var written: int = 0
 	var cards: Array[CardData] = CardLibrary.build_all()
@@ -53,7 +63,8 @@ func _write_cards() -> int:
 			push_warning("Carta '%s' senza id: saltata." % card.display_name)
 			continue
 
-		var path: String = "%s/%s.tres" % [CARDS_DIR, card.id]
+		var path: String = CardDatabase.path_for_card(card, CARDS_DIR)
+		DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 		var error: Error = ResourceSaver.save(card, path)
 
 		if error == OK:

@@ -29,19 +29,20 @@
 ## E' la tensione classica tra [i]attrito[/i] e [i]esplosione[/i]: il deck
 ## building diventa una scelta di identita', non di ottimizzazione.
 ##
-## [b]═══ PERCHE' IL VELENO NON STA TRA LE CARTE ECONOMICHE ═══[/b]
+## [b]═══ PERCHE' GLI STATUS NON STANNO TRA LE CARTE PIU' ECONOMICHE ═══[/b]
 ##
-## Il Veleno non decade mai, quindi si accumula in modo [b]esponenziale[/b]:
-## 8, 16, 24, 32... Se lo si potesse applicare con carte da 3 mana, un mazzo
-## tutto-veleno vincerebbe in 5 turni [b]senza mai rischiare[/b], e la
-## meccanica del bust diventerebbe inutile.
+## Il Veleno [b]decade[/b] ([code]poison_decay = 1[/code]). Senza decadimento
+## il suo danno totale dipende da quanto dura la partita, e diventa 3-4 volte
+## piu' efficiente del danno diretto: il simulatore ha misurato un mazzo al
+## [b]89,8%[/b] di vittorie.
 ##
-## Per questo gli status stanno nel tier intermedio (5-6 mana). Le carte da
-## 3-4 mana sono pura difesa, che non puo' vincere da sola.
+## Resta comunque lo status con [b]strati grandi e durata lunga[/b]: il suo
+## valore e' differito, quindi conviene giocarlo presto. Per questo occupa la
+## fascia intermedia (15-20 mana), mentre le carte da 10-14 sono pura difesa,
+## che non puo' vincere da sola.
 ##
-## Se il simulatore mostrera' che il Veleno domina comunque, basta mettere
-## [code]poison_decay = 1[/code] in [BattleBalance]: il Veleno diventa un
-## Brucia potenziato. E' un numero, non un cambio di struttura.
+## Se il Veleno dovesse dominare di nuovo basta alzare [code]poison_decay[/code]
+## in [BattleBalance]: e' un numero, non un cambio di struttura.
 class_name CardLibrary extends RefCounted
 
 
@@ -150,23 +151,23 @@ static func amplify_status(extra: int) -> AmplifyStatusEffect:
 static func fire_cards() -> Array[CardData]:
 	var Element: CardTypes.Element = CardTypes.Element.FIRE
 	return [
-		# --- SETUP (3-4): nessun danno immediato ---
-		make_card(&"fire_flame_guard", "Guardia Fiammeggiante", 4, Element, CardTypes.Rarity.COMMON,
-			[shield(8)]),
+		# --- SETUP (10-14) ---
+		make_card(&"fire_flame_guard", "Guardia Fiammeggiante", 14, Element, CardTypes.Rarity.BASE,
+			[shield(44)]),
 
-		# --- ATTrito (5-6): danno lento ---
-		make_card(&"fire_ember", "Braci", 5, Element, CardTypes.Rarity.COMMON,
-			[status(CardTypes.StatusType.BURN, 4)]),
-		make_card(&"fire_flame_slash", "Fendente di Fiamma", 6, Element, CardTypes.Rarity.COMMON,
-			[damage(12)]),
+		# --- ATTrito (15-20) ---
+		make_card(&"fire_ember", "Braci", 18, Element, CardTypes.Rarity.BASE,
+			[status(CardTypes.StatusType.BURN, 20)]),
+		make_card(&"fire_flame_slash", "Fendente di Fiamma", 18, Element, CardTypes.Rarity.BASE,
+			[damage(29)]),
 
-		# --- BURST (7-9): danno immediato ---
-		make_card(&"fire_blaze", "Vampa", 7, Element, CardTypes.Rarity.COMMON,
-			[damage(15)]),
-		make_card(&"fire_inferno", "Inferno", 8, Element, CardTypes.Rarity.RARE,
-			[damage(17), status(CardTypes.StatusType.BURN, 2)]),
-		make_card(&"fire_conflagration", "Conflagrazione", 9, Element, CardTypes.Rarity.EPIC,
-			[damage(23)]),
+		# --- BURST (21-30) ---
+		make_card(&"fire_blaze", "Vampa", 22, Element, CardTypes.Rarity.BASE,
+			[damage(35)]),
+		make_card(&"fire_inferno", "Inferno", 18, Element, CardTypes.Rarity.EPIC,
+			[damage(44), status(CardTypes.StatusType.BURN, 9)]),
+		make_card(&"fire_conflagration", "Conflagrazione", 14, Element, CardTypes.Rarity.LEGENDARY,
+			[damage(56)]),
 	]
 
 
@@ -177,19 +178,19 @@ static func fire_cards() -> Array[CardData]:
 static func ice_cards() -> Array[CardData]:
 	var Element: CardTypes.Element = CardTypes.Element.ICE
 	return [
-		# --- SETUP (3-4) ---
-		make_card(&"ice_frost_bite", "Morso di Gelo", 3, Element, CardTypes.Rarity.COMMON,
-			[status(CardTypes.StatusType.CHILL, 2)]),
-		make_card(&"ice_barrier", "Barriera di Gelo", 4, Element, CardTypes.Rarity.COMMON,
-			[shield(8)]),
+		# --- SETUP (10-14) ---
+		make_card(&"ice_frost_bite", "Morso di Gelo", 12, Element, CardTypes.Rarity.BASE,
+			[status(CardTypes.StatusType.CHILL, 8)]),
+		make_card(&"ice_barrier", "Barriera di Gelo", 14, Element, CardTypes.Rarity.BASE,
+			[shield(44)]),
 
-		# --- BURST (6-9) ---
-		make_card(&"ice_lance", "Lancia di Ghiaccio", 6, Element, CardTypes.Rarity.COMMON,
-			[damage(13)]),
-		make_card(&"ice_blizzard", "Tormenta", 7, Element, CardTypes.Rarity.UNCOMMON,
-			[damage(13), status(CardTypes.StatusType.CHILL, 2)]),
-		make_card(&"ice_absolute_zero", "Zero Assoluto", 9, Element, CardTypes.Rarity.EPIC,
-			[damage(22), status(CardTypes.StatusType.CHILL, 3)]),
+		# --- ATTrito / BURST ---
+		make_card(&"ice_lance", "Lancia di Ghiaccio", 18, Element, CardTypes.Rarity.BASE,
+			[damage(29)]),
+		make_card(&"ice_blizzard", "Tormenta", 22, Element, CardTypes.Rarity.RARE,
+			[damage(34), status(CardTypes.StatusType.CHILL, 6)]),
+		make_card(&"ice_absolute_zero", "Zero Assoluto", 16, Element, CardTypes.Rarity.LEGENDARY,
+			[damage(44), status(CardTypes.StatusType.CHILL, 8)]),
 	]
 
 
@@ -203,19 +204,19 @@ static func ice_cards() -> Array[CardData]:
 static func poison_cards() -> Array[CardData]:
 	var Element: CardTypes.Element = CardTypes.Element.POISON
 	return [
-		# --- ATTrito (5-6): il Veleno come investimento ---
-		make_card(&"poison_toxic_dart", "Dardo Tossico", 5, Element, CardTypes.Rarity.COMMON,
-			[status(CardTypes.StatusType.POISON, 4)]),
-		make_card(&"poison_acid_spit", "Sputo Acido", 6, Element, CardTypes.Rarity.COMMON,
-			[damage(9), status(CardTypes.StatusType.POISON, 2)]),
+		# --- ATTrito (15-20): il Veleno come investimento ---
+		make_card(&"poison_toxic_dart", "Dardo Tossico", 16, Element, CardTypes.Rarity.BASE,
+			[status(CardTypes.StatusType.POISON, 13)]),
+		make_card(&"poison_acid_spit", "Sputo Acido", 18, Element, CardTypes.Rarity.BASE,
+			[damage(18), status(CardTypes.StatusType.POISON, 6)]),
 
-		# --- BURST (7-9) ---
-		make_card(&"poison_venom_cloud", "Nube Venefica", 7, Element, CardTypes.Rarity.UNCOMMON,
-			[status(CardTypes.StatusType.POISON, 6)]),
-		make_card(&"poison_plague", "Piaga", 8, Element, CardTypes.Rarity.RARE,
-			[damage(14), status(CardTypes.StatusType.POISON, 4)]),
-		make_card(&"poison_miasma", "Miasma Letale", 9, Element, CardTypes.Rarity.EPIC,
-			[damage(18), status(CardTypes.StatusType.POISON, 4)]),
+		# --- BURST (21-30) ---
+		make_card(&"poison_venom_cloud", "Nube Venefica", 24, Element, CardTypes.Rarity.RARE,
+			[status(CardTypes.StatusType.POISON, 27)]),
+		make_card(&"poison_plague", "Piaga", 22, Element, CardTypes.Rarity.EPIC,
+			[damage(44), status(CardTypes.StatusType.POISON, 12)]),
+		make_card(&"poison_miasma", "Miasma Letale", 18, Element, CardTypes.Rarity.LEGENDARY,
+			[damage(48), status(CardTypes.StatusType.POISON, 12)]),
 	]
 
 
@@ -223,19 +224,19 @@ static func poison_cards() -> Array[CardData]:
 static func lightning_cards() -> Array[CardData]:
 	var Element: CardTypes.Element = CardTypes.Element.LIGHTNING
 	return [
-		# --- SETUP (3-4) ---
-		make_card(&"lightning_charge", "Carica", 3, Element, CardTypes.Rarity.COMMON,
-			[flat_bonus(4)]),
-		make_card(&"lightning_shield_arc", "Arco Elettrico", 4, Element, CardTypes.Rarity.COMMON,
-			[shield(8)]),
+		# --- SETUP (10-14) ---
+		make_card(&"lightning_charge", "Carica", 12, Element, CardTypes.Rarity.BASE,
+			[flat_bonus(13)]),
+		make_card(&"lightning_shield_arc", "Arco Elettrico", 14, Element, CardTypes.Rarity.BASE,
+			[shield(44)]),
 
-		# --- BURST (6-9) ---
-		make_card(&"lightning_static_bolt", "Dardo Statico", 6, Element, CardTypes.Rarity.COMMON,
-			[damage(13)]),
-		make_card(&"lightning_thunder_strike", "Colpo di Tuono", 7, Element, CardTypes.Rarity.UNCOMMON,
-			[damage(16)]),
-		make_card(&"lightning_storm_surge", "Tempesta", 9, Element, CardTypes.Rarity.EPIC,
-			[damage(15), turn_buff(30)]),
+		# --- ATTrito / BURST ---
+		make_card(&"lightning_static_bolt", "Dardo Statico", 18, Element, CardTypes.Rarity.BASE,
+			[damage(29)]),
+		make_card(&"lightning_thunder_strike", "Colpo di Tuono", 22, Element, CardTypes.Rarity.RARE,
+			[damage(48)]),
+		make_card(&"lightning_storm_surge", "Tempesta", 16, Element, CardTypes.Rarity.LEGENDARY,
+			[damage(40), turn_buff(30)]),
 	]
 
 
@@ -246,21 +247,21 @@ static func lightning_cards() -> Array[CardData]:
 static func nature_cards() -> Array[CardData]:
 	var Element: CardTypes.Element = CardTypes.Element.NATURE
 	return [
-		# --- SETUP (3-4) ---
-		make_card(&"nature_rejuvenate", "Rinvigorire", 3, Element, CardTypes.Rarity.COMMON,
-			[heal(8)]),
-		make_card(&"nature_thorn_whip", "Frusta di Spine", 4, Element, CardTypes.Rarity.COMMON,
-			[shield(8)]),
+		# --- SETUP (10-14) ---
+		make_card(&"nature_rejuvenate", "Rinvigorire", 12, Element, CardTypes.Rarity.BASE,
+			[heal(32)]),
+		make_card(&"nature_thorn_whip", "Frusta di Spine", 14, Element, CardTypes.Rarity.BASE,
+			[shield(44)]),
 
-		# --- SETUP / ATTrito (5-7) ---
-		make_card(&"nature_barrier", "Barriera di Rovi", 6, Element, CardTypes.Rarity.COMMON,
-			[shield(12)]),
-		make_card(&"nature_life_bloom", "Fioritura", 7, Element, CardTypes.Rarity.UNCOMMON,
-			[heal(16), status(CardTypes.StatusType.REGEN, 4, true)]),
+		# --- SETUP / ATTrito ---
+		make_card(&"nature_barrier", "Barriera di Rovi", 18, Element, CardTypes.Rarity.BASE,
+			[shield(58)]),
+		make_card(&"nature_life_bloom", "Fioritura", 22, Element, CardTypes.Rarity.RARE,
+			[heal(55), status(CardTypes.StatusType.REGEN, 13, true)]),
 
-		# --- BURST (8) ---
-		make_card(&"nature_forest_wrath", "Ira della Foresta", 8, Element, CardTypes.Rarity.UNCOMMON,
-			[damage(18)]),
+		# --- BURST ---
+		make_card(&"nature_forest_wrath", "Ira della Foresta", 24, Element, CardTypes.Rarity.RARE,
+			[damage(53)]),
 	]
 
 
@@ -268,17 +269,17 @@ static func nature_cards() -> Array[CardData]:
 static func dark_cards() -> Array[CardData]:
 	var Element: CardTypes.Element = CardTypes.Element.DARK
 	return [
-		# --- SETUP (4) ---
-		make_card(&"dark_drain_minor", "Risucchio Minore", 4, Element, CardTypes.Rarity.COMMON,
-			[heal(9), self_damage(2)]),
+		# --- SETUP (14) ---
+		make_card(&"dark_drain_minor", "Risucchio Minore", 14, Element, CardTypes.Rarity.BASE,
+			[heal(47), self_damage(6)]),
 
-		# --- ATTrito / BURST (6-9) ---
-		make_card(&"dark_drain", "Risucchio", 6, Element, CardTypes.Rarity.COMMON,
-			[damage(13), heal(5)]),
-		make_card(&"dark_curse", "Maledizione", 7, Element, CardTypes.Rarity.UNCOMMON,
-			[status(CardTypes.StatusType.POISON, 5)]),
-		make_card(&"dark_sacrifice", "Sacrificio", 9, Element, CardTypes.Rarity.RARE,
-			[damage(28), self_damage(7)]),
+		# --- ATTrito / BURST ---
+		make_card(&"dark_drain", "Risucchio", 18, Element, CardTypes.Rarity.BASE,
+			[damage(23), heal(12)]),
+		make_card(&"dark_curse", "Maledizione", 24, Element, CardTypes.Rarity.RARE,
+			[status(CardTypes.StatusType.POISON, 27)]),
+		make_card(&"dark_sacrifice", "Sacrificio", 20, Element, CardTypes.Rarity.EPIC,
+			[damage(80), self_damage(21)]),
 	]
 
 
@@ -294,23 +295,104 @@ static func dark_cards() -> Array[CardData]:
 static func support_cards() -> Array[CardData]:
 	var None: CardTypes.Element = CardTypes.Element.NONE
 	return [
-		# --- SETUP economico (3-4) ---
-		make_card(&"support_bulwark", "Baluardo", 3, None, CardTypes.Rarity.COMMON,
-			[shield(6)]),
-		make_card(&"support_focus", "Concentrazione", 3, None, CardTypes.Rarity.COMMON,
-			[flat_bonus(4)]),
-		make_card(&"support_toxic_recipe", "Ricetta Tossica", 4, None, CardTypes.Rarity.UNCOMMON,
-			[amplify_status(2)]),
-		make_card(&"support_battle_cry", "Grido di Battaglia", 4, None, CardTypes.Rarity.UNCOMMON,
-			[turn_buff(25)]),
+		# --- SETUP economico (10-14) ---
+		make_card(&"support_bulwark", "Baluardo", 10, None, CardTypes.Rarity.BASE,
+			[shield(32)]),
+		make_card(&"support_focus", "Concentrazione", 12, None, CardTypes.Rarity.BASE,
+			[flat_bonus(13)]),
+		make_card(&"support_toxic_recipe", "Ricetta Tossica", 20, None, CardTypes.Rarity.RARE,
+			[amplify_status(24)]),
+		make_card(&"support_battle_cry", "Grido di Battaglia", 16, None, CardTypes.Rarity.RARE,
+			[turn_buff(44)]),
 
-		# --- ATTrito / difesa pesante (5-7) ---
-		make_card(&"support_iron_wall", "Muro di Ferro", 5, None, CardTypes.Rarity.COMMON,
-			[shield(10)]),
-		make_card(&"support_war_drum", "Tamburo di Guerra", 5, None, CardTypes.Rarity.RARE,
-			[turn_buff(40)]),
-		make_card(&"support_reinforce", "Rinforzi", 7, None, CardTypes.Rarity.COMMON,
-			[shield(14)]),
+		# --- ATTrito / difesa pesante ---
+		make_card(&"support_iron_wall", "Muro di Ferro", 16, None, CardTypes.Rarity.BASE,
+			[shield(51)]),
+		make_card(&"support_war_drum", "Tamburo di Guerra", 16, None, CardTypes.Rarity.EPIC,
+			[turn_buff(60)]),
+		make_card(&"support_reinforce", "Rinforzi", 20, None, CardTypes.Rarity.BASE,
+			[shield(64)]),
+	]
+
+
+## Le carte [b]LEGGENDARIE[/b]: la fascia piu' forte del gioco.
+##
+## [b]Il modello:[/b] 4,0 potenza per mana, costo 10-20, una sola copia per mazzo.
+## Rispetto alle Base (1,6 per mana) rendono [b]due volte e mezzo[/b] a parita'
+## di mana, e in piu' costano poco: sono il premio della collezione.
+##
+## [b]Come sono progettate:[/b] ognuna ha una [i]identita'[/i], non e' solo
+## "tanto danno". Fenice cura mentre brucia, Tomba del Ghiacciaio blocca,
+## Patto di Sangue fa malissimo ma ti costa vita. Sono combinazioni di effetti
+## esistenti: quando ci saranno le abilita' passive, ognuna potra' avere anche
+## una keyword propria.
+##
+## [b]Nota sulle copie:[/b] il limite a 1 copia e' dichiarato in [RarityProfile]
+## ma non ancora applicato automaticamente al deck building: per ora e'
+## una regola di design, non un vincolo imposto dal codice.
+static func legendary_cards() -> Array[CardData]:
+	return [
+		# --- Fuoco: la rinascita ---
+		make_card(&"fire_phoenix", "Fenice", 16, CardTypes.Element.FIRE, CardTypes.Rarity.LEGENDARY,
+			[
+				damage(30),
+				heal(20),
+				status(CardTypes.StatusType.BURN, 16),
+			],
+			PackedStringArray(["legendary", "sustain"])),
+
+		# --- Ghiaccio: il blocco totale ---
+		make_card(&"ice_glacier_tomb", "Tomba del Ghiacciaio", 18, CardTypes.Element.ICE, CardTypes.Rarity.LEGENDARY,
+			[
+				damage(50),
+				status(CardTypes.StatusType.CHILL, 9),
+			],
+			PackedStringArray(["legendary", "control"])),
+
+		# --- Veleno: la pestilenza ---
+		make_card(&"poison_plague_lord", "Signore della Pestilenza", 16, CardTypes.Element.POISON, CardTypes.Rarity.LEGENDARY,
+			[
+				status(CardTypes.StatusType.POISON, 27),
+				damage(10),
+			],
+			PackedStringArray(["legendary", "attrition"])),
+
+		# --- Fulmine: il moltiplicatore ---
+		make_card(&"lightning_storm_herald", "Araldo della Tempesta", 14, CardTypes.Element.LIGHTNING, CardTypes.Rarity.LEGENDARY,
+			[
+				damage(38),
+				turn_buff(24),
+			],
+			PackedStringArray(["legendary", "amplifier"])),
+
+		# --- Natura: la sopravvivenza assoluta ---
+		make_card(&"nature_world_tree", "Albero del Mondo", 18, CardTypes.Element.NATURE, CardTypes.Rarity.LEGENDARY,
+			[
+				heal(60),
+				shield(30),
+				status(CardTypes.StatusType.REGEN, 20, true),
+			],
+			PackedStringArray(["legendary", "defense"])),
+
+		# --- Oscuro: il prezzo della potenza ---
+		make_card(&"dark_blood_pact", "Patto di Sangue", 12, CardTypes.Element.DARK, CardTypes.Rarity.LEGENDARY,
+			[
+				damage(60),
+				self_damage(12),
+			],
+			PackedStringArray(["legendary", "risky"])),
+
+		# --- Neutre: supporto leggendario ---
+		make_card(&"support_eternal_bulwark", "Baluardo Eterno", 16, CardTypes.Element.NONE, CardTypes.Rarity.LEGENDARY,
+			[shield(128)],
+			PackedStringArray(["legendary", "defense"])),
+
+		make_card(&"support_arcane_engine", "Motore Arcano", 14, CardTypes.Element.NONE, CardTypes.Rarity.LEGENDARY,
+			[
+				turn_buff(30),
+				flat_bonus(22),
+			],
+			PackedStringArray(["legendary", "amplifier"])),
 	]
 
 
@@ -324,6 +406,7 @@ static func build_all() -> Array[CardData]:
 	all_cards.append_array(nature_cards())
 	all_cards.append_array(dark_cards())
 	all_cards.append_array(support_cards())
+	all_cards.append_array(legendary_cards())
 	return all_cards
 
 
@@ -543,6 +626,28 @@ static func build_veteran_deck() -> DeckData:
 	return deck
 
 
+## Mazzo [b]LEGGENDARIO[/b]: le carte piu' forti del gioco, una copia ciascuna.
+##
+## [b]Serve come riferimento di potenza.[/b] Se un NPC con questo mazzo vince
+## sempre, il tier Leggendario e' troppo forte; se perde contro un mazzo Base,
+## la progressione non si sente e la collezione non ha senso.
+##
+## Non e' un buon avversario per un giocatore alle prime armi: e' il boss.
+static func build_legendary_deck() -> DeckData:
+	var deck: DeckData = DeckData.new()
+	deck.display_name = "Leggendario"
+
+	var entries: Array[DeckEntry] = []
+	for card: CardData in legendary_cards():
+		entries.append(DeckEntry.of(card, 1))
+	# Qualche base per non restare senza giocate economiche.
+	entries.append(DeckEntry.of(find_by_id(&"support_bulwark"), 2))
+	entries.append(DeckEntry.of(find_by_id(&"support_iron_wall"), 2))
+	entries.append(DeckEntry.of(find_by_id(&"fire_flame_slash"), 2))
+	deck.entries = entries
+	return deck
+
+
 ## Gli archetipi a confronto nel torneo.
 ##
 ## [b]Servono a rispondere a una domanda sola:[/b] esiste una strategia che
@@ -558,6 +663,7 @@ static func meta_decks() -> Array[DeckData]:
 		build_aggressive_deck(),
 		build_burst_deck(),
 		build_fortress_deck(),
+		build_legendary_deck(),
 		build_elemental_deck(CardTypes.Element.FIRE),
 		build_elemental_deck(CardTypes.Element.POISON),
 	]
@@ -636,7 +742,7 @@ static func build_synergies() -> Array[SynergyRule]:
 	ice_rule.damage_multiplier = 1.25
 	ice_rule.applies_to_element = CardTypes.Element.ICE
 	ice_rule.bonus_status = CardTypes.StatusType.CHILL
-	ice_rule.bonus_status_stacks = 2
+	ice_rule.bonus_status_stacks = 8
 	rules.append(ice_rule)
 
 	var poison_rule: SynergyRule = SynergyRule.new()
@@ -645,7 +751,7 @@ static func build_synergies() -> Array[SynergyRule]:
 	poison_rule.primary_element = CardTypes.Element.POISON
 	poison_rule.min_primary = 2
 	poison_rule.bonus_status = CardTypes.StatusType.POISON
-	poison_rule.bonus_status_stacks = 4
+	poison_rule.bonus_status_stacks = 13
 	rules.append(poison_rule)
 
 	var lightning_rule: SynergyRule = SynergyRule.new()
@@ -662,7 +768,7 @@ static func build_synergies() -> Array[SynergyRule]:
 	nature_rule.display_name = "Rigoglio"
 	nature_rule.primary_element = CardTypes.Element.NATURE
 	nature_rule.min_primary = 2
-	nature_rule.bonus_shield = 8
+	nature_rule.bonus_shield = 27
 	rules.append(nature_rule)
 
 	var dark_rule: SynergyRule = SynergyRule.new()
@@ -673,7 +779,7 @@ static func build_synergies() -> Array[SynergyRule]:
 	dark_rule.damage_multiplier = 1.3
 	dark_rule.applies_to_element = CardTypes.Element.DARK
 	dark_rule.bonus_status = CardTypes.StatusType.POISON
-	dark_rule.bonus_status_stacks = 3
+	dark_rule.bonus_status_stacks = 10
 	rules.append(dark_rule)
 
 	# --- Combo tra elementi diversi ------------------------------------------
@@ -686,7 +792,7 @@ static func build_synergies() -> Array[SynergyRule]:
 	steam_rule.secondary_element = CardTypes.Element.ICE
 	steam_rule.min_secondary = 1
 	steam_rule.bonus_status = CardTypes.StatusType.POISON
-	steam_rule.bonus_status_stacks = 3
+	steam_rule.bonus_status_stacks = 10
 	rules.append(steam_rule)
 
 	var storm_rule: SynergyRule = SynergyRule.new()

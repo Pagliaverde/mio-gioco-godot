@@ -21,16 +21,20 @@ class_name BattleBalance extends Resource
 ##
 ## [b]E' il numero piu' importante del gioco.[/b] Determina dove inizia la zona
 ## di rischio: il bust e' possibile solo quando il mana scende sotto il costo
-## massimo del mazzo. Il simulatore ha trovato che con 12 mana il primo
-## giocatore non e' piu' avvantaggiato (win rate 50.7% invece del 76%).
-@export_range(1, 100, 1) var mana_base: int = 12
+## massimo del mazzo.
+##
+## [b]Scala attuale: 50 mana, carte da 10 a 30.[/b] Serve gamma sufficiente
+## perche' le rarita' possano differenziarsi: con la vecchia scala (12 mana,
+## carte 3-9) c'erano solo 7 possibili costi, e "rara costosa e debole" contro
+## "unica economica e devastante" non ci stava dentro.
+@export_range(1, 200, 1) var mana_base: int = 50
 
 ## Mana in piu' per ogni livello del giocatore (meta-progressione permanente).
-@export_range(0, 10, 1) var mana_per_level: int = 2
+@export_range(0, 40, 1) var mana_per_level: int = 8
 
 ## Bonus di mana casuale, minimo e massimo (la "fortuna" del turno).
-@export_range(0, 30, 1) var mana_bonus_min: int = 0
-@export_range(0, 30, 1) var mana_bonus_max: int = 3
+@export_range(0, 60, 1) var mana_bonus_min: int = 0
+@export_range(0, 60, 1) var mana_bonus_max: int = 12
 
 @export_group("Scudo")
 
@@ -39,13 +43,14 @@ class_name BattleBalance extends Resource
 ## [b]Deve essere piu' basso del danno per mana,[/b] altrimenti fermarsi e
 ## accumulare difesa diventa meglio che attaccare e le partite si trascinano.
 ##
-## Riferimento: le carte fanno circa 2,0-2,5 danno per mana, quindi 0,75 rende
-## fermarsi una scelta sicura ma non conveniente.
-@export_range(0.0, 3.0, 0.05) var mana_to_shield_ratio: float = 0.75
+## Con questa scala le carte fanno circa 1,6-4,0 potenza per mana, quindi 0,6
+## rende fermarsi una scelta sicura ma non conveniente.
+@export_range(0.0, 3.0, 0.05) var mana_to_shield_ratio: float = 0.6
 
 ## Riduzione percentuale dei danni per ogni punto di scudo.
-## 0.0075 = 0.75% per punto: con 20 scudo riduci del 15%.
-@export_range(0.0, 0.02, 0.0005) var shield_percent_reduction_per_point: float = 0.0075
+## Va scalata insieme ai numeri delle carte: nella scala vecchia 0.0075 dava
+## -15% con 20 scudo, qui serve un valore proporzionalmente piu' piccolo.
+@export_range(0.0, 0.02, 0.0001) var shield_percent_reduction_per_point: float = 0.0023
 
 ## Tetto massimo alla riduzione percentuale (0.5 = 50%).
 @export_range(0.0, 0.9, 0.05) var shield_max_percent_reduction: float = 0.5
@@ -93,8 +98,8 @@ class_name BattleBalance extends Resource
 @export_group("Battaglia")
 
 ## Vita iniziale dei combattenti. Bassa = partite brevi.
-## Con 100 vita le partite durano ~20 turni: adatto a dungeon e boss.
-@export_range(10, 500, 5) var starting_health: int = 100
+## Con 400 vita e carte sulla nuova scala le partite durano ~10-20 turni.
+@export_range(10, 2000, 10) var starting_health: int = 400
 
 ## Numero massimo di turni prima che la battaglia finisca in pareggio.
 ## Serve solo a impedire loop infiniti nel simulatore.
@@ -111,7 +116,7 @@ class_name BattleBalance extends Resource
 ##
 ## Alza questo valore finche' il win rate non si avvicina al 50%.
 ## La modalita' TUNING del simulatore ti dice quanto serve.
-@export_range(0, 200, 1) var second_player_bonus_shield: int = 12
+@export_range(0, 400, 1) var second_player_bonus_shield: int = 40
 
 ## Mana in piu' a chi gioca per secondo, solo nel [b]primo[/b] turno.
 ## Alternativa allo scudo: premia chi e' indietro invece di difenderlo.

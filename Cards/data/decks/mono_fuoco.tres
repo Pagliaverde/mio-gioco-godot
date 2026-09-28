@@ -1,0 +1,173 @@
+[gd_resource type="Resource" script_class="DeckData" format=3 uid="uid://bx7jjy726rsti"]
+
+[ext_resource type="Script" uid="uid://cpdx135xanfhj" path="res://Cards/data/deck_entry.gd" id="1_q17hk"]
+[ext_resource type="Script" uid="uid://3idb4opo5a6b" path="res://Cards/effects/card_effect.gd" id="2_f2fge"]
+[ext_resource type="Script" uid="uid://5hsmcebk7si" path="res://Cards/effects/gain_shield_effect.gd" id="3_e54o8"]
+[ext_resource type="Script" uid="uid://xg4x0rtp6kys" path="res://Cards/data/card_data.gd" id="4_av81t"]
+[ext_resource type="Script" uid="uid://bk2vjwo54ir18" path="res://Cards/effects/apply_status_effect.gd" id="5_gnniv"]
+[ext_resource type="Script" uid="uid://cu87a6gywiki3" path="res://Cards/effects/deal_damage_effect.gd" id="6_vdbiw"]
+[ext_resource type="Script" uid="uid://d32hlvnypheu3" path="res://Cards/effects/heal_effect.gd" id="7_dh17j"]
+[ext_resource type="Script" uid="uid://c1n01j7883xfp" path="res://Cards/data/deck_data.gd" id="8_60iic"]
+
+[sub_resource type="Resource" id="Resource_q17hk"]
+script = ExtResource("3_e54o8")
+amount = 44
+
+[sub_resource type="Resource" id="Resource_f2fge"]
+script = ExtResource("4_av81t")
+id = &"fire_flame_guard"
+display_name = "Guardia Fiammeggiante"
+cost = 14
+element = 1
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_q17hk")])
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_e54o8"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_f2fge")
+count = 2
+
+[sub_resource type="Resource" id="Resource_av81t"]
+script = ExtResource("5_gnniv")
+stacks = 20
+
+[sub_resource type="Resource" id="Resource_gnniv"]
+script = ExtResource("4_av81t")
+id = &"fire_ember"
+display_name = "Braci"
+cost = 18
+element = 1
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_av81t")])
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_vdbiw"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_gnniv")
+count = 2
+
+[sub_resource type="Resource" id="Resource_dh17j"]
+script = ExtResource("6_vdbiw")
+amount = 29
+
+[sub_resource type="Resource" id="Resource_60iic"]
+script = ExtResource("4_av81t")
+id = &"fire_flame_slash"
+display_name = "Fendente di Fiamma"
+cost = 18
+element = 1
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_dh17j")])
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_tjf1v"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_60iic")
+count = 2
+
+[sub_resource type="Resource" id="Resource_w63jf"]
+script = ExtResource("6_vdbiw")
+amount = 35
+
+[sub_resource type="Resource" id="Resource_cfvnq"]
+script = ExtResource("4_av81t")
+id = &"fire_blaze"
+display_name = "Vampa"
+cost = 22
+element = 1
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_w63jf")])
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_qstvb"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_cfvnq")
+count = 2
+
+[sub_resource type="Resource" id="Resource_ckgkq"]
+script = ExtResource("6_vdbiw")
+amount = 44
+
+[sub_resource type="Resource" id="Resource_thfn1"]
+script = ExtResource("5_gnniv")
+stacks = 9
+
+[sub_resource type="Resource" id="Resource_hhvl8"]
+script = ExtResource("4_av81t")
+id = &"fire_inferno"
+display_name = "Inferno"
+cost = 18
+element = 1
+rarity = 2
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_ckgkq"), SubResource("Resource_thfn1")])
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_l8hc8"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_hhvl8")
+count = 2
+
+[sub_resource type="Resource" id="Resource_otyqd"]
+script = ExtResource("6_vdbiw")
+amount = 56
+
+[sub_resource type="Resource" id="Resource_1tude"]
+script = ExtResource("4_av81t")
+id = &"fire_conflagration"
+display_name = "Conflagrazione"
+cost = 14
+element = 1
+rarity = 3
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_otyqd")])
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_po7ah"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_1tude")
+count = 2
+
+[sub_resource type="Resource" id="Resource_fkw02"]
+script = ExtResource("6_vdbiw")
+amount = 30
+
+[sub_resource type="Resource" id="Resource_usfkk"]
+script = ExtResource("7_dh17j")
+amount = 20
+
+[sub_resource type="Resource" id="Resource_qryta"]
+script = ExtResource("5_gnniv")
+stacks = 16
+
+[sub_resource type="Resource" id="Resource_0dkf8"]
+script = ExtResource("4_av81t")
+id = &"fire_phoenix"
+display_name = "Fenice"
+cost = 16
+element = 1
+rarity = 3
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_fkw02"), SubResource("Resource_usfkk"), SubResource("Resource_qryta")])
+tags = PackedStringArray("legendary", "sustain")
+
+[sub_resource type="Resource" id="Resource_gov64"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_0dkf8")
+count = 2
+
+[sub_resource type="Resource" id="Resource_nb45w"]
+script = ExtResource("3_e54o8")
+amount = 32
+
+[sub_resource type="Resource" id="Resource_b2x8b"]
+script = ExtResource("4_av81t")
+id = &"support_bulwark"
+display_name = "Baluardo"
+cost = 10
+effects = Array[ExtResource("2_f2fge")]([SubResource("Resource_nb45w")])
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_dcnax"]
+script = ExtResource("1_q17hk")
+card = SubResource("Resource_b2x8b")
+count = 3
+
+[resource]
+script = ExtResource("8_60iic")
+display_name = "Mono Fuoco"
+entries = Array[ExtResource("1_q17hk")]([SubResource("Resource_e54o8"), SubResource("Resource_vdbiw"), SubResource("Resource_tjf1v"), SubResource("Resource_qstvb"), SubResource("Resource_l8hc8"), SubResource("Resource_po7ah"), SubResource("Resource_gov64"), SubResource("Resource_dcnax")])

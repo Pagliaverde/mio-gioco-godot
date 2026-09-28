@@ -6,6 +6,7 @@
 ##
 ## Lo scudo che non viene consumato [b]resta[/b] anche nei turni successivi,
 ## quindi accumulare difesa e' una strategia legittima.
+@tool
 class_name GainShieldEffect extends CardEffect
 
 

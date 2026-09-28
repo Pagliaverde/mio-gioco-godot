@@ -21,6 +21,7 @@
 ## [b]Regola d'oro:[/b] non modificare mai lo stato direttamente dentro
 ## [method apply]. Accumula tutto in [param ctx] e lascia che sia
 ## [BattleState] ad applicarlo. Cosi' l'ordine delle carte non conta.
+@tool
 class_name CardEffect extends Resource
 
 

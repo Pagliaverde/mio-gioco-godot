@@ -2,6 +2,7 @@
 ##
 ## Serve per le "carte rischiose" che [b]pagano poco mana[/b] ma hanno un prezzo
 ## in vita. Sono quelle che rendono interessante decidere se rischiare.
+@tool
 class_name LoseHealthEffect extends CardEffect
 
 

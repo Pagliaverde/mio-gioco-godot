@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SynergyRule" format=3 uid="uid://d214sbs2kpjhc"]
+
+[ext_resource type="Script" uid="uid://bqnfaiauobldi" path="res://Cards/synergy/synergy_rule.gd" id="1_jwaxb"]
+
+[resource]
+script = ExtResource("1_jwaxb")
+id = &"syn_nature_growth"
+display_name = "Rigoglio"
+primary_element = 5
+min_primary = 2
+bonus_shield = 27

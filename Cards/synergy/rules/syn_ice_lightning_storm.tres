@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SynergyRule" format=3 uid="uid://krlh41b6x0m5"]
+
+[ext_resource type="Script" uid="uid://bqnfaiauobldi" path="res://Cards/synergy/synergy_rule.gd" id="1_vghu4"]
+
+[resource]
+script = ExtResource("1_vghu4")
+id = &"syn_ice_lightning_storm"
+display_name = "Tempesta di Ghiaccio"
+primary_element = 2
+min_primary = 1
+secondary_element = 4
+damage_multiplier = 1.2
