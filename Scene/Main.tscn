@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://bfsj72c33e22a"]
 
 [ext_resource type="Texture2D" uid="uid://bt45woyh7j16b" path="res://Asset/TileMap/Map/Grass.png" id="1_g6ejq"]
-[ext_resource type="PackedScene" uid="uid://dclq365gqmscm" path="res://Scene/Player.tscn" id="1_xhtwi"]
+[ext_resource type="PackedScene" uid="uid://dclq365gqmscm" path="res://Scene/Player/Player.tscn" id="1_xhtwi"]
 [ext_resource type="Texture2D" uid="uid://f787vxxx3lr6" path="res://Asset/TileMap/Map/Hills.png" id="2_djkur"]
 [ext_resource type="Texture2D" uid="uid://bjkrayy4sfrx8" path="res://Asset/Sprite/Object/Basic Grass Biom things 1.png" id="3_aan6j"]
 [ext_resource type="Texture2D" uid="uid://c2bckgkutcu53" path="res://Asset/TileMap/Map/Tilled_Dirt_Wide.png" id="3_h3nmf"]
 [ext_resource type="Texture2D" uid="uid://3pn7s8dcf7nk" path="res://Asset/TileMap/Map/Solaria Demo Tiles.png" id="3_togfq"]
-[ext_resource type="PackedScene" uid="uid://bqa2mrr8wq4vl" path="res://Scene/SlimeNpc.tscn" id="4_h175a"]
+[ext_resource type="PackedScene" uid="uid://bqa2mrr8wq4vl" path="res://Scene/Player/SlimeNpc.tscn" id="4_h175a"]
 [ext_resource type="Texture2D" uid="uid://bo8qnsmf8yppv" path="res://Asset/TileMap/TempleDestroied/Trees_grass_alternative_fit.png" id="5_hueuk"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_g6ejq"]
