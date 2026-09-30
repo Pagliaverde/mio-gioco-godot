@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhrdnyq6o6m1j"
-path="res://.godot/imported/run_right-Sheet.png-5f21ccd3ef66d12eb95675630d7751a4.ctex"
+path="res://.godot/imported/run_right-Sheet.png-d0f5ee70ba65f84cb861f65e728da2d9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Asset/Sprite/MySprite/MyCharacter/MC/run_right-Sheet.png"
-dest_files=["res://.godot/imported/run_right-Sheet.png-5f21ccd3ef66d12eb95675630d7751a4.ctex"]
+source_file="res://Asset/Sprite/MySprite/MyCharacter/MC/MC1_Real/run_right-Sheet.png"
+dest_files=["res://.godot/imported/run_right-Sheet.png-d0f5ee70ba65f84cb861f65e728da2d9.ctex"]
 
 [params]
 

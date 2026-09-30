@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://db117uyh2l0kd"
-path="res://.godot/imported/idle_right-Sheet.png-49d96d5c0eb5d8b916812652f6aca976.ctex"
+uid="uid://2wy4hqnb3vrl"
+path="res://.godot/imported/run_right-Sheet.png-336535f9337deff5d22da884da3311b7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Asset/Sprite/MySprite/MyCharacter/MC/MC1_Real/idle_right-Sheet.png"
-dest_files=["res://.godot/imported/idle_right-Sheet.png-49d96d5c0eb5d8b916812652f6aca976.ctex"]
+source_file="res://Asset/Sprite/MySprite/MyCharacter/MC/MC2/run_right-Sheet.png"
+dest_files=["res://.godot/imported/run_right-Sheet.png-336535f9337deff5d22da884da3311b7.ctex"]
 
 [params]
 
