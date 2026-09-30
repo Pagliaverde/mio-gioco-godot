@@ -70,7 +70,10 @@ func _ready() -> void:
 	_database = CardDatabase.load_default()
 	_table = RarityTable.load_default()
 
-	_ensure_art_folder()
+	# Nota: qui NON creiamo la cartella delle illustrazioni. Farlo in _ready()
+	# significa scrivere sul filesystem ad ogni avvio dell'editor, e ogni
+	# scrittura puo' far ripartire la scansione delle risorse. La cartella la
+	# crea _on_assign_art(), cioe' solo quando serve davvero.
 	_build_ui()
 	_build_dialog()
 	_refresh_list()
@@ -627,6 +630,11 @@ func _on_validate() -> void:
 func _on_assign_art() -> void:
 	var assigned: int = 0
 	var missing: int = 0
+
+	# Creiamo la cartella qui, non in _ready(): cosi' l'editor non scrive sul
+	# filesystem ad ogni avvio. Serve prima del ciclo perche' l'utente la usa
+	# come promemoria di dove mettere i file.
+	_ensure_art_folder()
 
 	for card: CardData in _database.cards:
 		if card == null:

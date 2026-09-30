@@ -953,6 +953,73 @@ var stats: Dictionary = state.get_stats()
 | Una carta non appare nel mazzo | Id sbagliato in `find_by_id` | `deck.validate()` te lo segnala |
 | Le carte "spariscono" dal mazzo | Non dovrebbe succedere | Il motore rimette sempre le carte nel ciclo: segnalalo |
 | Modifiche ai `.tres` ignorate dal simulatore | `CardLibrary` costruisce le carte in codice | Le due cose sono separate: vedi sotto |
+| **Il pannello in basso di Godot sparisce e non torna** | **Il plugin Card Editor agganciava il dock in `_enter_tree()`** | Vedi sotto: è già risolto, ma leggi come recuperare |
+
+### ⚠️ Il pannello in basso di Godot sparisce (Output, Debugger, Animation)
+
+**Sintomo.** Il pannello in basso c'è per un istante all'avvio, poi sparisce. Non
+c'è più niente da trascinare e nessun pulsante per riaprirlo. Reinstallare Godot
+non serve. Azzerare la cartella in `AppData` non serve.
+
+**Perché non serve reinstallare.** Il layout dell'editor **non sta dentro Godot**:
+è *per progetto*, in `res://.godot/editor/editor_layout.cfg`. Disinstallare e
+reinstallare lascia quel file identico. Ecco perché "non si aggiusta mai".
+
+**La spiegazione.** Il plugin agganciava il suo dock dentro `_enter_tree()`,
+cioè mentre Godot stava **ancora caricando il layout**. Quel tocco faceva
+partire un salvataggio del layout proprio nel momento in cui il pannello in
+basso non aveva ancora la sua scheda attiva. E Godot, quando salva un pannello
+senza scheda attiva, non scrive "nessuna scheda": **cancella la riga**.
+
+Alla partita dopo la riga manca, quindi il pannello risulta collassato. E quando
+è collassato Godot nasconde **sia il pulsante di espansione sia il separatore da
+trascinare**: non c'è più modo di riaprirlo dall'interfaccia. Si peggiora da solo
+ad ogni avvio.
+
+**Come si riconosce nel file.** In un layout sano ogni riga `dock_N=` è seguita
+subito da `dock_N_selected_tab_idx=`. Se invece ne trovi una **in fondo alla
+sezione `[docks]`**, staccata dalla sua riga, è la firma di un cancella-e-riscrivi:
+
+```ini
+[docks]
+dock_5="Inspector,Signals,Groups"
+dock_5_selected_tab_idx=0        ← sana: subito dopo la sua riga
+dock_9="Output,Debugger,Animation,..."
+...
+dock_bottom_split=0
+dock_9_selected_tab_idx=0        ← sospetta: staccata in fondo
+```
+
+**Come si recupera.** Con Godot **chiuso** (se è aperto riscrive il file
+all'uscita), cancella:
+
+```
+res://.godot/editor/editor_layout.cfg
+```
+
+e riapri il progetto. Oppure, con Godot aperto, premi la scorciatoia di un
+pannello in basso — per esempio `Ctrl+Shift+F` (*Cerca nei file*): quelle
+scorciatoie riaprono il pannello.
+
+**Cosa è stato corretto.** In `addons/card_editor/plugin.gd` l'aggancio del dock
+adesso avviene **un frame dopo**:
+
+```gdscript
+func _enter_tree() -> void:
+	_browser = CARD_BROWSER_SCRIPT.new()
+	_browser.name = "Carte"
+	_add_browser.call_deferred()   # ← non spostare questo aggancio qui dentro
+```
+
+Così quando il dock viene aggiunto il layout è già stato ripristinato e il
+pannello in basso ha la sua scheda. Il salvataggio non cancella più niente.
+
+> **Non "semplificare"** rimettendo `add_control_to_dock` dentro `_enter_tree`:
+> sembra più pulito ed è quello che fanno quasi tutti i plugin, ma è esattamente
+> ciò che rompeva l'editor.
+
+**La regola generale.** Un plugin non deve toccare l'albero dei dock durante
+l'avvio dell'editor. Vale per qualunque plugin, non solo per questo.
 
 ### `CardLibrary` vs i `.tres` generati
 
