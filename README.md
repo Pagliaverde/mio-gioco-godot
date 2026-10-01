@@ -40,6 +40,10 @@ Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, un
 | Attaccare            | `Spazio`                  |
 | Avviare il dialogo   | `Invio`                   |
 | Avanzare nel dialogo | `Invio` / click           |
+| **Pausa**            | `Esc`                     |
+
+Premendo `Esc` durante il gioco il mondo si ferma e compare il menu di pausa
+(Riprendi, Salva, Opzioni, Torna al menu, Esci). Vedi [`Pause/README.md`](Pause/README.md).
 
 > ⚠️ Al momento il dialogo con lo slime è legato all'azione `ui_accept`, che in Godot include anche `Spazio`: premendo Spazio si attacca **e** si apre il dialogo. Vedi la [Roadmap](#-roadmap).
 
@@ -57,7 +61,7 @@ Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, un
    ```
 2. Apri Godot e, dal **Project Manager**, clicca su **Importa** e seleziona il file `project.godot` nella cartella clonata.
 3. Al primo avvio Godot reimporterà tutti gli asset (può richiedere qualche secondo).
-4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è `Scene/Main.tscn`.
+4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è `Menu/main_menu.tscn`: da lì **Storia → Nuova Partita** porta al campo da gioco (`Scene/Main.tscn`).
 
 > Il plugin **Dialogue Manager** è già incluso nella cartella `addons/` e abilitato in `project.godot`: non serve installarlo a parte.
 
@@ -67,9 +71,15 @@ Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, un
 mio-gioco-godot/
 ├── project.godot              # Configurazione del progetto (input, autoload, plugin)
 ├── Scene/
-│   ├── Main.tscn              # Scena principale: mappa, camera, player e NPC
+│   ├── Main.tscn              # Campo da gioco: mappa, camera, player e NPC
 │   ├── Player.tscn            # Protagonista (sprite animati + suoni)
 │   └── SlimeNpc.tscn          # NPC slime
+├── Menu/                      # Menu principale (mazzo di carte, titolo, musiche)
+├── Pause/                     # Menu di pausa (Esc): vedi Pause/README.md
+├── Save/                      # Salvataggio della partita: vedi Save/README.md
+├── Settings/                  # Impostazioni, tema globale e accessibilità
+├── Cards/                     # Carte, mazzi, bilanciamento e tavolo di battaglia
+├── Docs/                      # Documenti di design (trama, maschere)
 ├── Asset/
 │   ├── Script/
 │   │   ├── player.gd          # Movimento, animazioni e attacco del player
@@ -85,7 +95,8 @@ mio-gioco-godot/
 │   ├── tileset/               # Risorsa TileSet di Godot
 │   └── audio/                 # Effetti sonori (passi, spada)
 └── addons/
-    └── dialogue_manager/      # Plugin Dialogue Manager (v4.1.0)
+    ├── dialogue_manager/      # Plugin Dialogue Manager (v4.1.0)
+    └── card_editor/           # Editor delle carte dentro Godot
 ```
 
 ## 💬 Dialoghi
@@ -121,7 +132,8 @@ La sintassi completa è documentata nella [guida ufficiale di Dialogue Manager](
 - [ ] Hitbox della spada e interazione con i nemici
 - [ ] Animali (galline, mucche) già presenti negli asset
 - [ ] Inventario e oggetti raccoglibili
-- [ ] Menu principale e salvataggio
+- [x] Menu principale
+- [x] Menu di pausa (`Esc`) e salvataggio della partita
 
 ## 🤝 Contribuire (workflow Git)
 

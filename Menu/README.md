@@ -15,12 +15,13 @@ regolare stanno in un posto solo: l'inspector del nodo `MainMenu`.
 | File | Cosa e' |
 |---|---|
 | `Menu/main_menu.tscn` | La scena da aprire e premere F6 |
-| `Menu/main_menu.gd` | Il menu: mazzo in mano, titolo, input, conferma |
+| `Menu/main_menu.gd` | Il menu: mazzo in mano, titolo, audio, input, conferma |
 | `Menu/menu_entry_card.gd` | **Una voce di menu a forma di carta** (click e trascinamento) |
 | `Menu/menu_card_art.gd` | Disegna la carta in pixel art: carta, cornice, crepe, macchie |
 | `Menu/menu_action.gd` | Una voce di menu come dato |
 | `Menu/menu_card.gd` | La carta dello sfondo animato (facoltativo) |
 | `Menu/menu_card_backdrop.gd` | Fa scorrere quello sfondo animato (facoltativo) |
+| `Menu/menu_mask_backdrop.gd` | **Le maschere che fluttuano** dietro al menu |
 
 ---
 
@@ -60,20 +61,156 @@ cosa sola da fare, un campo per voce.
 
 ```
 MainMenu (Control)
-├── ColorRect                    fondo pieno
-├── TextureRect "sheen"          gradiente verticale appena accennato
-├── MenuCardBackdrop             sfondo animato (spento di default)
+├── ColorRect                    colore pieno (ripiego se l'immagine manca)
+├── TextureRect                  il sipario: l'immagine di fondo
+├── MenuMaskBackdrop             le maschere che fluttuano   ← menu_mask_backdrop.gd
+├── TextureRect "sheen"          velo sopra al fondo (vignetta)
+├── MenuCardBackdrop             carte che scorrono (spento di default)
 ├── Control  _card_layer         dove vivono le carte del menu
 │   └── MenuEntryCard × 6        una carta per voce   ← menu_entry_card.gd
-├── Label  titolo
-├── Label  sottotitolo
+├── TextureRect  titolo          titleBgRemoved.png (o Label, se manca)
 ├── Label  descrizione           descrizione della voce al centro
 ├── Label  "3 / 6"               dove sei nel mazzo
 ├── Label  aiuto
 ├── Label  piede (in basso a sinistra)
 ├── Label  toast                 messaggi temporanei
+├── AudioStreamPlayer  musica    menu_song.mp3, in loop (bus Music)
+├── AudioStreamPlayer  click     menu_botton.mp3 (bus UI)
 └── Control  pannello di conferma (nascosto)
 ```
+
+### Lo sfondo: il sipario e le maschere
+
+Il fondo del menu e' su tre strati, dal piu' indietro al piu' avanti:
+
+| Strato | Cosa |
+|---|---|
+| **Colore pieno** (`background_color`) | Ripiego: si vede solo se l'immagine manca |
+| **Il sipario** | `background.jpg`, riempie lo schermo senza deformarsi |
+| **Le maschere** | Fluttuano lentamente, dietro a titolo e carte |
+| **Il velo** | Scurisce alto e basso, per far leggere i testi |
+
+#### Cambiare l'immagine di fondo
+
+Nell'inspector del nodo **MainMenu**, gruppo **Sfondo**:
+
+| Campo | Cosa fa |
+|---|---|
+| **Background Image** | L'immagine da usare. Se la compili, vince lei |
+| **Background Path** | Il percorso, usato se il campo sopra e' vuoto |
+| **Background Dim** | Quanto scurire. Alzalo se i testi non si leggono |
+| **Floating Masks** | Spunta per accendere/spegnere le maschere |
+
+#### Le maschere
+
+Le crea `MenuMaskBackdrop`, che legge **un foglio di maschere** e lo ritaglia
+**da solo**: non devi preparare 60 file. Il foglio di default e'
+`Menu/img/mask2BgRemoved.png` — **60 maschere in griglia 10x6**, ben
+distanziate, con lo sfondo gia' tolto.
+
+> ⚠️ **Perche' il file `BgRemoved` e non `mask2.jpg`:** il jpg ha il fondo
+bianco pieno. Senza trasparenza non si puo' ritagliare ne' disegnare sul
+sipario senza mostrare dei rettangoli bianchi. Se hai solo un jpg, togli lo
+sfondo e salvalo come `.png` con il canale alpha.
+
+**Come funziona il ritaglio:** cerca le colonne e le righe di disegno separate
+da spazio vuoto e le incrocia. I riquadri cadono **esattamente** intorno a ogni
+maschera, con 2 pixel di margine per recuperare il bordo sfumato.
+
+Su questo foglio il risultato e' stato **misurato pixel per pixel**: escono
+**60 maschere (10 x 6) con zero pixel di disegno tagliati**. Il taglio e'
+perfetto.
+
+> ℹ️ **Se un domani usi un foglio con le maschere attaccate** (come il vecchio
+> `maskBgRemoved.png`, dove fiamme e fulmini si toccavano), il ritaglio per
+> bande non le puo' separare e il menu **ripiega da solo** su una griglia a
+> `Grid Columns x Grid Rows`, tagliando alcuni bordi. In Output trovi
+> l'avviso. La via pulita in quel caso e' la cartella qui sotto.
+
+**Il risultato perfetto, sempre:** salva le maschere come **file separati** in
+`Menu/masks/`, un png per maschera. Se quella cartella esiste e non e' vuota,
+il menu usa quei file e il foglio non serve piu'. Li' non si taglia niente e
+non c'e' nessun calcolo da fare.
+
+Dall'inspector di **MenuMaskBackdrop** (in `Menu/menu_mask_backdrop.gd`),
+gruppo **Foglio**:
+
+| Campo | Cosa fa |
+|---|---|
+| **Masks Folder** | La cartella con le maschere separate. Se c'e', vince sul foglio |
+| **Sheet Path** | Il foglio da ritagliare, usato se la cartella e' vuota |
+| **Grid Columns / Rows** | Il ripiego, se il foglio ha le maschere attaccate (10 x 6) |
+
+Dall'inspector di **MainMenu**, gruppo **Sfondo**:
+
+| Campo | Cosa fa |
+|---|---|
+| **Mask Count** | Quante maschere in scena |
+| **Mask Height Min / Max** | La piu' lontana e la piu' vicina |
+| **Mask Opacity** | Quanto si vedono |
+| **Mask Drift Speed** | Quanto si muovono |
+
+Tutto il resto (rotazione, oscillazione, sfumatura sui bordi, seme) sta nelle
+propriet\u00e0 di `MenuMaskBackdrop`: aprila in `Menu/menu_mask_backdrop.gd`.
+
+**Le maschere delle "impostazioni"** — se il giocatore ha scelto *Riduci il
+movimento* (Accessibilit\u00e0), le maschere **restano ferme**. E' una scelta sua:
+non aggirarla.
+
+#### Il titolo
+
+Gruppo **Titolo**: **Title Image**, **Title Path**, **Title Height**.
+
+Il titolo e' **un'immagine** (`Menu/img/titleBgRemoved.png`), mostrata in alto al
+centro e scalata sulla sua altezza — mai stirata: la larghezza segue le
+proporzioni.
+
+| Campo | Cosa fa |
+|---|---|
+| **Title Image** | L'immagine del titolo. Se la compili, vince sul percorso |
+| **Title Path** | Il percorso, usato se il campo sopra e' vuoto |
+| **Title Height** | Quanto e' alto il titolo a schermo (300px di default) |
+| **Title** | Testo di **ripiego**: si vede solo se l'immagine manca |
+
+> ℹ️ **Tre fermi automatici:** il titolo non supera mai il **72% della larghezza**
+> (non deve toccare i bordi), mai lo **spazio libero sopra le carte** (non deve
+> mangiarsi il mazzo) e mai scende sotto il **6% dell'altezza** (su finestre basse
+> resterebbe illeggibile). Se lo ingrandisci molto, si ferma da solo a quelle misure.
+>
+> Lo spazio sopra le carte non e' una percentuale fissa: nasce da
+> `carousel_center_ratio` e `card_size`. Se sposti o ingrandisci il mazzo, il
+> titolo si stringe da solo invece di finirci sopra.
+>
+> **Se al posto dell'immagine vedi il testo**, Godot non ha ancora importato il
+> png: riapri il progetto una volta. In Output trovi il motivo esatto.
+
+> ℹ️ **Il sottotitolo non c'e' piu'.** Era la riga sotto al titolo, ora tolta.
+> Il campo `menu_subtitle` e' stato rimosso anche dalle impostazioni.
+
+#### La musica e i suoni
+
+Gruppo **Audio**:
+
+| Campo | Cosa fa | Default |
+|---|---|---|
+| **Music Path** | La musica di sottofondo, in loop | `Menu/Audio/menu_song.mp3` |
+| **Click Path** | Il suono quando scorri o premi | `Menu/Audio/menu_botton.mp3` |
+| **Music Volume Db** | Volume della musica | `-9` |
+| **Click Volume Db** | Volume dei click | `-5` |
+
+**Come sono collegati ai volumi:** la musica sta sul bus **Music** e i click sul
+bus **UI**, quindi i cursori delle *Impostazioni → Audio* li controllano
+separatamente (e li zittiscono insieme al resto).
+
+**Dove suona il click:**
+
+- scorrendo il mazzo (frecce, rotella, trascinando una carta)
+- scegliendo una voce (Invio o click sulla carta in cima)
+- passando fra i pulsanti di un sottomenu
+- premendo un pulsante del sottomenu o la conferma Si'/No
+
+Lo scorrimento **varia appena il tono** (`pitch_scale` fra 0.94 e 1.08): passare
+su tante carte non deve suonare come lo stesso suono ripetuto.
 
 ### Il mazzo in mano
 
@@ -411,12 +548,28 @@ Il pulsante **Nuova Partita** della voce **Storia** punta gia' a
 
 ### `MainMenu` (nodo radice)
 
+**Titolo**
+
+| Parametro | Descrizione | Default |
+|---|---|---|
+| **Title Image** | L'immagine del titolo | `titleBgRemoved.png` |
+| **Title Path** | Percorso dell'immagine, se non ne assegni una | `res://Menu/img/titleBgRemoved.png` |
+| **Title Height** | Altezza del titolo a schermo | `300` |
+| **Title** | Testo di ripiego, se l'immagine manca | "FUORI COPIONE" |
+
+**Audio**
+
+| Parametro | Descrizione | Default |
+|---|---|---|
+| **Music Path** | Musica di sottofondo, in loop (bus Music) | `res://Menu/Audio/menu_song.mp3` |
+| **Click Path** | Suono di scorrimento e pressione (bus UI) | `res://Menu/Audio/menu_botton.mp3` |
+| **Music Volume Db** | Volume della musica | `-9.0` |
+| **Click Volume Db** | Volume dei click | `-5.0` |
+
 **Testi**
 
 | Parametro | Descrizione | Default |
 |---|---|---|
-| **Title** | Titolo grande. Vuoto = nome del progetto, in maiuscolo | vuoto |
-| **Subtitle** | Riga sotto il titolo | "Un card game a turni" |
 | **Hint** | Riga di aiuto in fondo. Vuoto = quella di default | vuoto |
 | **Footer** | Riga in basso a sinistra. Vuoto = versione di Godot | vuoto |
 

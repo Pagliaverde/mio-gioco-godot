@@ -83,6 +83,38 @@ func _ready() -> void:
 	if not animated_sprite_2d.animation_finished.is_connected(_on_animated_sprite_2d_animation_finished):
 		animated_sprite_2d.animation_finished.connect(_on_animated_sprite_2d_animation_finished)
 
+	# Partecipa al salvataggio. Iscriversi al gruppo basta: chi salva passa di
+	# qui e chiama i due metodi qui sotto. Vedi Save/save_game.gd.
+	add_to_group(SaveGame.GROUP)
+	SaveGame.apply_to(self)
+
+
+#----------------------------------------------
+#		SALVATAGGIO
+#----------------------------------------------
+
+## Cosa ricordare di questo personaggio: dove si trova e da che parte guarda.
+##
+## [b]Non salviamo lo stato momentaneo[/b] (dialogo aperto, animazione in corso):
+## al caricamento il personaggio deve ricominciare fermo, non a meta' di una
+## conversazione che non esiste piu'.
+func get_save_data() -> Dictionary:
+	return {
+		"position": position,
+		"direction": last_direction,
+	}
+
+
+## Rimette il personaggio dove era.
+func apply_save_data(data: Variant) -> void:
+	if typeof(data) != TYPE_DICTIONARY:
+		return
+	var saved: Dictionary = data
+	if saved.has("position"):
+		position = saved["position"]
+	if saved.has("direction"):
+		last_direction = saved["direction"]
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(INTERACT_ACTION) and not is_in_dialogue:
