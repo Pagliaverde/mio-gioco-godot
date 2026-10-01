@@ -679,7 +679,11 @@ func _event_text(event: InputEvent) -> String:
 	if key != null:
 		var keycode: Key = key.keycode
 		if key.physical_keycode != KEY_NONE:
-			keycode = DisplayServer.keyboard_get_keycode_from_physical(key.physical_keycode)
+			keycode = key.physical_keycode
+			# Il nome secondo il layout della tastiera (es. AZERTY). Non tutti i
+			# display server lo sanno fare: senza finestra si tiene quello fisico.
+			if DisplayServer.get_name() != "headless":
+				keycode = DisplayServer.keyboard_get_keycode_from_physical(key.physical_keycode)
 		return OS.get_keycode_string(keycode)
 	var mouse: InputEventMouseButton = event as InputEventMouseButton
 	if mouse != null:
