@@ -166,7 +166,7 @@ func _build_defaults() -> Dictionary:
 			"ink": look["ink"],
 			"palette": look["palette"],
 			"card_wear": 0.6,
-			"font": "pixel",
+			"font": "jersey",
 			"animation_speed": 1.0,
 			"menu_title": "",
 			"menu_subtitle": "Un card game a turni",
@@ -322,14 +322,22 @@ func ui_theme() -> Theme:
 
 ## Il font scelto, o null per quello di sistema.
 func ui_font() -> Font:
-	if str(get_value("theme", "font", "pixel")) == "pixel" and ResourceLoader.exists(UiThemeBuilder.PIXEL_FONT):
-		return load(UiThemeBuilder.PIXEL_FONT) as Font
+	var path: String = str(_font_info().get("path", ""))
+	if not path.is_empty() and ResourceLoader.exists(path):
+		return load(path) as Font
 	return null
 
 
-## La dimensione del testo, gia' moltiplicata per la scala del testo.
+## La dimensione del testo, gia' moltiplicata per la scala del testo e per la
+## correzione del font scelto.
 func font_size(base: int) -> int:
-	return int(round(float(base) * float(get_value("accessibility", "text_scale", 1.0))))
+	var scale: float = float(get_value("accessibility", "text_scale", 1.0)) * float(_font_info().get("scale", 1.0))
+	return int(round(float(base) * scale))
+
+
+func _font_info() -> Dictionary:
+	var fonts: Dictionary = UiThemeBuilder.FONTS
+	return fonts.get(str(get_value("theme", "font", "jersey")), fonts["jersey"])
 
 
 ## Per le animazioni: moltiplica una durata per questo numero.
@@ -728,6 +736,16 @@ func load_settings() -> void:
 			var saved: Variant = _config.get_value(section, key)
 			if section == "controls" or not values.has(key) or typeof(saved) == typeof(values[key]) or _both_numbers(saved, values[key]):
 				values[key] = saved
+	_migrate()
+
+
+## Aggiorna i valori salvati da versioni vecchie del gioco.
+func _migrate() -> void:
+	var look: Dictionary = _values["theme"]
+	# Prima c'era un solo font pixel ("pixel" = GrapeSoda, il predefinito di
+	# allora): ora il predefinito e' Jersey 10, piu' leggibile.
+	if look.get("font") == "pixel" or not UiThemeBuilder.FONTS.has(str(look.get("font"))):
+		look["font"] = "jersey"
 
 
 func _both_numbers(a: Variant, b: Variant) -> bool:

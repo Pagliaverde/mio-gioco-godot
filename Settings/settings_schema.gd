@@ -107,7 +107,7 @@ static func tabs() -> Array:
 				{"type": "slider", "key": "stack_jitter", "label": "Disordine del mazzo", "min": 0.0, "max": 8.0, "step": 0.5, "format": "number"},
 				{"type": "slider", "key": "stack_depth", "label": "Carte visibili nel mazzo", "min": 0, "max": 8, "step": 1, "format": "number"},
 				{"type": "toggle", "key": "ambient_cards", "label": "Carte che scorrono sullo sfondo"},
-				{"type": "choice", "key": "font", "label": "Carattere", "options": [["pixel", "Pixel"], ["system", "Sistema"]]},
+				{"type": "choice", "key": "font", "label": "Carattere", "options": [["jersey", "Jersey 10"], ["grapesoda", "GrapeSoda"], ["system", "Sistema"]]},
 				{"type": "slider", "key": "animation_speed", "label": "Velocità animazioni", "min": 0.5, "max": 2.0, "step": 0.25, "format": "times"},
 				{"type": "text", "key": "menu_title", "label": "Titolo del menu", "placeholder": "Nome del gioco"},
 				{"type": "text", "key": "menu_subtitle", "label": "Sottotitolo del menu"},

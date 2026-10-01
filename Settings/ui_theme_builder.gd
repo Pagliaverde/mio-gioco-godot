@@ -17,7 +17,14 @@
 class_name UiThemeBuilder extends RefCounted
 
 
-const PIXEL_FONT := "res://GrapeSoda.ttf"
+## I font che il giocatore puo' scegliere (Tema → Carattere). "system" = quello
+## di Godot. [code]scale[/code]: alcuni font pixel sono piccoli a parita' di
+## dimensione, cosi' tutti risultano grandi uguali.
+const FONTS: Dictionary = {
+	"jersey": {"label": "Jersey 10", "path": "res://Asset/Fonts/Jersey10-Regular.ttf", "scale": 1.2},
+	"grapesoda": {"label": "GrapeSoda", "path": "res://GrapeSoda.ttf", "scale": 1.0},
+	"system": {"label": "Sistema", "path": "", "scale": 1.0},
+}
 
 ## Lo spessore dei bordi, in pixel.
 const BORDER := 4

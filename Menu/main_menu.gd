@@ -896,6 +896,14 @@ func _wobble(button: Button) -> void:
 		tween.tween_property(button, "rotation", deg_to_rad(degrees), 0.05)
 
 
+## True se il focus della tastiera e' su uno dei pulsanti del sottomenu.
+func _sub_button_has_focus() -> bool:
+	if _submenu_row == null:
+		return false
+	var focused: Control = get_viewport().gui_get_focus_owner()
+	return focused != null and focused.get_parent() == _submenu_row
+
+
 ## Sposta il focus fra i pulsanti del sottomenu.
 ##
 ## [param step] 0 = primo pulsante attivo, -1/+1 = quello a sinistra/destra.
@@ -1324,7 +1332,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_D, KEY_RIGHT:
 				_focus_sub_button(1)
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
-				_activate_selected()
+				# Se un pulsante ha il focus, Invio e' suo: il Button lo "preme"
+				# al rilascio del tasto, ma Godot fa arrivare la pressione anche
+				# qui. Senza questo controllo richiuderemmo il sottomenu prima
+				# che il pulsante scatti.
+				if not _sub_button_has_focus():
+					_activate_selected()
 			_:
 				return
 		get_viewport().set_input_as_handled()
