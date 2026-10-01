@@ -1,0 +1,151 @@
+[gd_scene format=3 uid="uid://dwrcsqj855l6r"]
+
+[ext_resource type="Texture2D" uid="uid://edotmgurhabi" path="res://Asset/Sprite/MySprite/MyCharacter/Manichino/idle_back-Sheet.png" id="1_x68tg"]
+[ext_resource type="Texture2D" uid="uid://b0osruw3b6f2b" path="res://Asset/Sprite/MySprite/MyCharacter/Manichino/idle_front-Sheet.png" id="2_8u73y"]
+[ext_resource type="Texture2D" uid="uid://bg6s31fvetcj8" path="res://Asset/Sprite/MySprite/MyCharacter/Manichino/idle_right-Sheet.png" id="3_tykxv"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5oxcq"]
+atlas = ExtResource("1_x68tg")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ueoon"]
+atlas = ExtResource("1_x68tg")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0hnnq"]
+atlas = ExtResource("1_x68tg")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cvetx"]
+atlas = ExtResource("1_x68tg")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mfbcd"]
+atlas = ExtResource("1_x68tg")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tvy0q"]
+atlas = ExtResource("2_8u73y")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xk8o1"]
+atlas = ExtResource("2_8u73y")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bai1i"]
+atlas = ExtResource("2_8u73y")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gaysg"]
+atlas = ExtResource("2_8u73y")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bl3ep"]
+atlas = ExtResource("2_8u73y")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cqn8l"]
+atlas = ExtResource("3_tykxv")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f7ww6"]
+atlas = ExtResource("3_tykxv")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v3xrx"]
+atlas = ExtResource("3_tykxv")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l4kk6"]
+atlas = ExtResource("3_tykxv")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8ry8k"]
+atlas = ExtResource("3_tykxv")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_pyvdo"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5oxcq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ueoon")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0hnnq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cvetx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mfbcd")
+}],
+"loop": 1,
+"name": &"idle_back",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tvy0q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xk8o1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bai1i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gaysg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bl3ep")
+}],
+"loop": 1,
+"name": &"idle_front",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cqn8l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f7ww6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v3xrx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l4kk6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8ry8k")
+}],
+"loop": 1,
+"name": &"idle_right",
+"speed": 3.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pyvdo"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_x68tg"]
+radius = 20.0
+
+[node name="Mannequin" type="CharacterBody2D" unique_id=759609655]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1014818059]
+scale = Vector2(0.335, 0.335)
+sprite_frames = SubResource("SpriteFrames_pyvdo")
+animation = &"idle_back"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=686286887]
+shape = SubResource("RectangleShape2D_pyvdo")
+
+[node name="InteractionArea" type="Area2D" parent="." unique_id=1349306487]
+visible = false
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea" unique_id=1824957963]
+shape = SubResource("CircleShape2D_x68tg")
