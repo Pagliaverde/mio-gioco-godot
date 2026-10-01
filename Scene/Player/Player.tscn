@@ -517,11 +517,13 @@ script = ExtResource("1_3eeal")
 stream = ExtResource("4_mud5u")
 volume_db = -13.77
 pitch_scale = 1.46
+bus = &"SFX"
 
 [node name="Walking" type="AudioStreamPlayer2D" parent="." unique_id=1558971314]
 stream = ExtResource("3_jvxg0")
 volume_db = -9.976
 pitch_scale = 1.37
+bus = &"SFX"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=355852075]
 texture_filter = 1

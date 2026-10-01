@@ -33,6 +33,12 @@ class_name MenuAction extends Resource
 ## Consigliato per [code]quit[/code], per evitare di chiudere per sbaglio.
 @export var needs_confirmation: bool = false
 
+## Le sotto-voci. Se ce ne sono, scegliere questa voce non cambia schermata:
+## fa comparire i loro pulsanti sotto la carta (es. Storia → Riprendi,
+## Nuova Partita, Altre Opzioni). Ogni sotto-voce funziona come una voce
+## normale: Scene Path, Enabled, Needs Confirmation...
+@export var sub_actions: Array[MenuAction] = []
+
 @export_group("Carta")
 
 ## L'immagine mostrata sulla carta di questa voce.
@@ -55,6 +61,10 @@ func has_custom_accent() -> bool:
 ## True se questa voce ha un'illustrazione.
 func has_art() -> bool:
 	return art != null
+
+## True se questa voce apre dei pulsanti invece di fare qualcosa da sola.
+func has_sub_actions() -> bool:
+	return not sub_actions.is_empty()
 
 
 ## Costruisce una voce al volo (comodo da codice).

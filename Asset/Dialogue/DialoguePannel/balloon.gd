@@ -157,6 +157,8 @@ func apply_dialogue_line() -> void:
 
 	dialogue_label.hide()
 	dialogue_label.dialogue_line = dialogue_line
+	# Velocita' del testo scelta nelle impostazioni (Gioco → Velocita' del testo).
+	dialogue_label.seconds_per_step = 0.02 / Settings.text_speed()
 
 	responses_menu.hide()
 	responses_menu.responses = dialogue_line.responses

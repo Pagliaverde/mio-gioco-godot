@@ -1,10 +1,11 @@
-## Il menu principale del gioco: le voci sono carte che scorrono.
+## Il menu principale del gioco: le voci sono carte di un mazzo che tieni in mano.
 ##
 ## [b]Com'e' fatto:[/b] le voci del menu non sono un elenco di pulsanti, sono
-## [b]carte[/b] disposte a ventaglio. Quella selezionata sta al centro, dritta
-## e in primo piano; le altre si allontanano ai lati rimpicciolendosi,
-## ruotando e sbiadendo. Premi la freccia e il mazzo scorre: la carta nuova
-## entra da un lato e si "sfila" fino al centro, come quando apri un mazzo.
+## [b]carte[/b] impilate una dietro l'altra, come un blocco tenuto in mano. La
+## voce selezionata e' la carta in cima; le altre spuntano dietro, un po'
+## sfalsate, storte e piu' scure. Scorri (frecce, rotella, trackpad, oppure
+## trascina la carta col mouse) e la carta in cima esce di lato e passa in
+## fondo al mazzo.
 ##
 ## [b]Come si usa:[/b] apri [code]res://Menu/main_menu.tscn[/code] e premi F6.
 ##
@@ -56,27 +57,28 @@ signal quit_requested()
 ## Dimensione di una carta. Alzala per un menu piu' imponente.
 @export var card_size: Vector2 = Vector2(300, 420)
 
-## Quanto distano i centri di due carte vicine.
+## Di quanto si sposta ogni carta rispetto a quella davanti.
 ##
-## Se e' piu' piccola della larghezza della carta, le carte si sovrappongono
-## un po': e' quello che le fa sembrare un mazzo di carte invece di una fila.
-@export_range(60.0, 600.0, 5.0) var card_spacing: float = 196.0
+## E' quello che fa vedere il mazzo: le carte dietro spuntano un po' in alto
+## a destra, come quando tieni un blocco di carte in mano.
+@export var stack_offset: Vector2 = Vector2(9.0, -11.0)
 
-## Quante carte tenere visibili per lato, oltre a quella centrale.
-@export_range(0, 8, 1) var visible_side: int = 3
+## Quante carte si vedono spuntare dietro a quella in cima.
+@export_range(0, 8, 1) var stack_depth: int = 5
 
-## Quanto rimpicciolisce ogni carta allontanandosi di un posto dal centro.
-@export_range(0.5, 1.0, 0.01) var neighbour_scale: float = 0.86
+## Quanto rimpicciolisce ogni carta scendendo di un posto nel mazzo.
+@export_range(0.0, 0.1, 0.005) var stack_scale_step: float = 0.02
 
-## Quanto sbiadisce ogni carta allontanandosi di un posto dal centro.
-@export_range(0.0, 0.6, 0.02) var neighbour_fade: float = 0.16
+## Quanto si scurisce ogni carta scendendo di un posto nel mazzo.
+@export_range(0.0, 0.3, 0.01) var stack_darken: float = 0.11
 
-## Rotazione, in gradi, della prima carta di lato. Piu' alta = ventaglio
-## piu' aperto.
-@export_range(0.0, 25.0, 0.5) var fan_rotation: float = 8.0
+## Rotazione massima, in gradi, delle carte dietro: nessun mazzo vero e'
+## perfettamente allineato.
+@export_range(0.0, 10.0, 0.5) var stack_jitter: float = 3.0
 
-## Se true, arrivato all'ultima voce la freccia riparte dalla prima.
-@export var wrap_around: bool = true
+## Quanti pixel devi trascinare la carta perche' vada in fondo al mazzo.
+## Se la lasci prima torna al suo posto.
+@export_range(30.0, 400.0, 5.0) var swipe_threshold: float = 110.0
 
 @export_group("Animazione")
 
@@ -95,7 +97,7 @@ signal quit_requested()
 ## E' il tempo fra una carta e l'altra mentre escono dal mazzo.
 @export_range(0.0, 0.4, 0.01) var deal_stagger: float = 0.07
 
-## A che altezza mettere il centro del ventaglio, in proporzione all'altezza
+## A che altezza mettere il centro del mazzo, in proporzione all'altezza
 ## dello schermo. 0.5 = meta' esatta.
 @export_range(0.2, 0.8, 0.01) var carousel_center_ratio: float = 0.47
 
@@ -105,12 +107,13 @@ signal quit_requested()
 @export_range(24, 140, 2) var title_size: int = 68
 
 ## Dimensione del testo scritto sulle carte.
-@export_range(14, 60, 1) var card_title_size: int = 32
+@export_range(14, 60, 1) var card_title_size: int = 36
 
 ## Colore usato per i bordi del pannello di conferma.
+## [b]Lo sovrascrive il tema delle impostazioni[/b] (vedi [method _read_settings]).
 @export var accent_color: Color = Color(0.98, 0.72, 0.30)
 
-## Colore di fondo dello schermo.
+## Colore di fondo dello schermo. Lo sovrascrive il tema delle impostazioni.
 @export var background_color: Color = Color(0.05, 0.06, 0.09)
 
 ## Se true, dietro alle carte del menu scorre anche il mazzo decorativo
@@ -136,6 +139,18 @@ var _selected: int = 0
 var _toast_time_left: float = 0.0
 var _intro_done: bool = false
 var _busy: bool = false
+var _scroll_cooldown: float = 0.0
+var _pan_accum: float = 0.0
+
+# --- Sottomenu (i pulsanti sotto la carta, es. quelli di Storia) ---
+var _submenu_row: HBoxContainer = null
+var _submenu_action: MenuAction = null
+
+# --- Impostazioni ---
+# I valori dell'inspector, prima che le impostazioni del giocatore li cambino:
+# servono per poterli ricalcolare ogni volta che cambia il tema.
+var _inspector: Dictionary = {}
+var _text_color: Color = Color(0.97, 0.97, 0.99)
 
 # --- Conferma ---
 var _confirm_layer: Control
@@ -144,6 +159,16 @@ var _pending_action: MenuAction = null
 
 
 func _ready() -> void:
+	_inspector = {
+		"title": title,
+		"slide_duration": slide_duration,
+		"deal_duration": deal_duration,
+		"deal_stagger": deal_stagger,
+		"slide_overshoot": slide_overshoot,
+	}
+	_read_settings()
+	Settings.theme_changed.connect(_on_theme_changed)
+
 	_build_ui()
 	_build_cards()
 	_layout_ui()
@@ -192,41 +217,41 @@ func _build_ui() -> void:
 
 	# --- 3. Lo strato dove vivono le carte del menu ---
 	# Non e' un contenitore: le posizioni le calcoliamo noi, una per una.
-	# Un contenitore le rimetterebbe in fila annullando il ventaglio.
+	# Un contenitore le rimetterebbe in fila annullando il mazzo.
 	_card_layer = Control.new()
 	_card_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_card_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_card_layer)
 
 	# --- 4. Titolo, sottotitolo, descrizione, aiuto ---
-	_title_label = _make_centered_label(title_size, Color(0.97, 0.97, 0.99))
+	_title_label = _make_centered_label(title_size, _text_color)
 	_title_label.text = _resolve_title()
 	_title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.65))
 	_title_label.add_theme_constant_override("shadow_offset_x", 3)
 	_title_label.add_theme_constant_override("shadow_offset_y", 3)
 	add_child(_title_label)
 
-	_subtitle_label = _make_centered_label(23, Color(0.74, 0.78, 0.88))
+	_subtitle_label = _make_centered_label(32, _text_color.darkened(0.2))
 	_subtitle_label.text = subtitle
 	_subtitle_label.visible = not subtitle.strip_edges().is_empty()
 	add_child(_subtitle_label)
 
-	_description_label = _make_centered_label(20, Color(0.80, 0.84, 0.92))
+	_description_label = _make_centered_label(30, _text_color.darkened(0.12))
 	_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_description_label)
 
-	_index_label = _make_centered_label(16, Color(0.60, 0.64, 0.74))
+	_index_label = _make_centered_label(24, _text_color.darkened(0.35))
 	add_child(_index_label)
 
-	_hint_label = _make_centered_label(17, Color(0.55, 0.59, 0.68))
+	_hint_label = _make_centered_label(25, _text_color.darkened(0.42))
 	_hint_label.text = _resolve_hint()
 	add_child(_hint_label)
 
 	# --- 5. Piede, in basso a sinistra ---
 	_footer_label = Label.new()
 	_footer_label.text = _resolve_footer()
-	_footer_label.add_theme_font_size_override("font_size", 15)
-	_footer_label.add_theme_color_override("font_color", Color(0.45, 0.48, 0.56))
+	_footer_label.add_theme_font_size_override("font_size", Settings.font_size(22))
+	_footer_label.add_theme_color_override("font_color", _text_color.darkened(0.5))
 	_footer_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	# Tutti e quattro gli offset: con gli anchor in basso a sinistra,
 	# lasciare offset_left == offset_right darebbe larghezza zero.
@@ -240,7 +265,7 @@ func _build_ui() -> void:
 	# --- 6. Messaggio temporaneo, in basso al centro ---
 	_toast_label = Label.new()
 	_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_toast_label.add_theme_font_size_override("font_size", 21)
+	_toast_label.add_theme_font_size_override("font_size", Settings.font_size(30))
 	_toast_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.96))
 	_toast_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	_toast_label.add_theme_constant_override("outline_size", 8)
@@ -262,7 +287,8 @@ func _make_centered_label(font_size: int, color: Color) -> Label:
 	var label: Label = Label.new()
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", font_size)
+	# La scala del testo viene dalle impostazioni (Accessibilita').
+	label.add_theme_font_size_override("font_size", Settings.font_size(font_size))
 	label.add_theme_color_override("font_color", color)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -278,20 +304,26 @@ func _layout_ui() -> void:
 	var center_y: float = height * carousel_center_ratio
 
 	_title_label.offset_top = height * 0.055
-	_title_label.offset_bottom = _title_label.offset_top + float(title_size) * 1.35
+	_title_label.offset_bottom = _title_label.offset_top + float(Settings.font_size(title_size)) * 1.35
 
 	_subtitle_label.offset_top = _title_label.offset_bottom + 2.0
-	_subtitle_label.offset_bottom = _subtitle_label.offset_top + 36.0
+	_subtitle_label.offset_bottom = _subtitle_label.offset_top + 48.0
 
-	# La descrizione sta sotto il ventaglio di carte.
-	_description_label.offset_top = center_y + card_size.y * 0.5 + 46.0
-	_description_label.offset_bottom = _description_label.offset_top + 66.0
+	# La descrizione sta sotto il mazzo di carte. Se sono aperti i pulsanti
+	# di una voce, loro prendono il suo posto e la descrizione scende.
+	var below_cards: float = center_y + card_size.y * 0.5 + 46.0
+	if _submenu_row != null:
+		_submenu_row.offset_top = below_cards - 6.0
+		_submenu_row.offset_bottom = _submenu_row.offset_top + 72.0
+		below_cards = _submenu_row.offset_bottom + 14.0
+	_description_label.offset_top = below_cards
+	_description_label.offset_bottom = _description_label.offset_top + 84.0
 
-	_index_label.offset_top = height - 140.0
-	_index_label.offset_bottom = height - 108.0
+	_index_label.offset_top = height - 156.0
+	_index_label.offset_bottom = height - 116.0
 
-	_hint_label.offset_top = height - 100.0
-	_hint_label.offset_bottom = height - 68.0
+	_hint_label.offset_top = height - 108.0
+	_hint_label.offset_bottom = height - 64.0
 
 
 ## Un gradiente verticale appena percettibile, per dare profondita' al fondo.
@@ -394,11 +426,17 @@ func _build_confirm_layer() -> Control:
 static func build_default_actions() -> Array[MenuAction]:
 	var list: Array[MenuAction] = []
 
-	list.append(MenuAction.of(
+	# Storia non porta a una schermata da sola: apre tre pulsanti sotto la carta.
+	var story: MenuAction = MenuAction.of(
 		&"story", "Storia",
-		"Inizia l'avventura e attraversa i dungeon.",
-		"res://Scene/Main.tscn"
-	))
+		"Inizia l'avventura e attraversa i dungeon."
+	)
+	story.sub_actions = [
+		MenuAction.of(&"continue", "Riprendi", "Continua dall'ultimo salvataggio."),
+		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia l'avventura da capo.", "res://Scene/Main.tscn"),
+		MenuAction.of(&"story_options", "Altre Opzioni", "Difficolta', capitoli e altre impostazioni della storia."),
+	]
+	list.append(story)
 
 	list.append(MenuAction.of(
 		&"deck", "Il tuo deck",
@@ -460,6 +498,8 @@ func _build_cards() -> void:
 
 		_card_layer.add_child(card)
 		card.card_pressed.connect(_on_card_pressed)
+		card.card_dragged.connect(_on_card_dragged)
+		card.card_released.connect(_on_card_released)
 		# Invisibili finche' non e' partito l'ingresso: cosi' non si vede un
 		# fotogramma con tutte le carte ammassate nell'angolo.
 		card.modulate.a = 0.0
@@ -527,8 +567,8 @@ func _make_dialog_style(background: Color, border: Color) -> StyleBoxFlat:
 
 ## Il giocatore ha cliccato una carta.
 ##
-## Cliccare la carta gia' al centro equivale a sceglierla (come Invio);
-## cliccarne un'altra la porta al centro.
+## Cliccare la carta in cima equivale a sceglierla (come Invio); cliccare il
+## bordo di una carta dietro fa passare quella in cima in fondo al mazzo.
 func _on_card_pressed(card: MenuEntryCard) -> void:
 	if _busy or not is_instance_valid(card):
 		return
@@ -537,23 +577,61 @@ func _on_card_pressed(card: MenuEntryCard) -> void:
 		_activate_selected()
 		return
 
-	_selected = card.index
-	_layout_cards(true)
+	_move_selection(1)
 
 
-## Sceglie la voce che sta al centro del ventaglio.
+## Il giocatore sta trascinando una carta: quella in cima lo segue.
+##
+## Si muove soprattutto in orizzontale e si inclina verso dove la tiri, come
+## una carta che stai sfilando dal mazzo con il pollice.
+func _on_card_dragged(card: MenuEntryCard, offset: Vector2) -> void:
+	if _busy or card.index != _selected or _confirm_layer.visible:
+		return
+
+	var home: Dictionary = _target_for(0, card)
+	card.kill_tween()
+	card.position = home["position"] + Vector2(offset.x, offset.y * 0.3)
+	card.rotation = deg_to_rad(clampf(offset.x * 0.05, -18.0, 18.0))
+
+
+## Il giocatore ha lasciato la carta: se l'ha tirata abbastanza va in fondo
+## al mazzo, altrimenti torna al suo posto.
+func _on_card_released(card: MenuEntryCard, offset: Vector2) -> void:
+	if _busy or card.index != _selected:
+		return
+
+	if absf(offset.x) >= swipe_threshold:
+		_move_selection(1, _sign_of_float(offset.x))
+	else:
+		_layout_cards(true)
+
+
+## Sceglie la voce che sta in cima al mazzo.
 func _activate_selected() -> void:
 	if _busy or _action_list.is_empty():
 		return
+	_activate_action(_action_list[_selected])
 
-	var action: MenuAction = _action_list[_selected]
+
+## Sceglie una voce: quella in cima al mazzo o un pulsante del sottomenu.
+func _activate_action(action: MenuAction) -> void:
 	if not action.enabled:
 		_show_toast("%s non e' disponibile." % action.label, 2.0)
 		_refuse_current()
 		return
 
-	# Le azioni che chiedono conferma si fermano qui.
-	if action.needs_confirmation:
+	# Le voci con sotto-voci aprono (o richiudono) i loro pulsanti.
+	if action.has_sub_actions():
+		if _submenu_action == action:
+			_close_submenu()
+		else:
+			_open_submenu(action)
+		return
+
+	# Le azioni che chiedono conferma si fermano qui. Per "Esci" la conferma
+	# si puo' spegnere nelle impostazioni (Gioco → Chiedi conferma).
+	var skip_confirm: bool = action.id == &"quit" and not bool(Settings.get_value("game", "confirm_quit", true))
+	if action.needs_confirmation and not skip_confirm:
 		_ask_confirmation(action)
 		return
 
@@ -586,6 +664,13 @@ func _execute_action(action: MenuAction) -> void:
 			action.label, action.scene_path,
 		])
 		_refuse_current()
+		return
+
+	# 2b. Opzioni: apre la schermata delle impostazioni, sopra al menu.
+	if action.id == &"options":
+		action_selected.emit(action.id)
+		_cards[_selected].tremble()
+		Settings.open_menu()
 		return
 
 	# 3. Tutto il resto: lo segnaliamo a chi ascolta, e intanto spieghiamo.
@@ -661,34 +746,215 @@ func _on_confirm_no() -> void:
 
 #endregion
 
+#region Sottomenu
+
+
+## Fa comparire, sotto la carta in cima, i pulsanti delle sotto-voci.
+##
+## I pulsanti entrano uno alla volta con un tremolio (vedi [method _pop_in]) e
+## la carta stessa trema, come se li avesse "lasciati cadere" lei.
+func _open_submenu(action: MenuAction) -> void:
+	_close_submenu(false)
+	_submenu_action = action
+
+	_submenu_row = HBoxContainer.new()
+	_submenu_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_submenu_row.add_theme_constant_override("separation", 24)
+	_submenu_row.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_submenu_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_submenu_row)
+	# Sotto al pannello di conferma: quello deve restare sopra a tutto.
+	move_child(_submenu_row, _confirm_layer.get_index())
+
+	var accent: Color = _cards[_selected].accent
+	var order: int = 0
+	for sub: MenuAction in action.sub_actions:
+		if sub == null:
+			continue
+		var button: Button = _make_sub_button(sub, accent)
+		_submenu_row.add_child(button)
+		_pop_in(button, 0.06 + float(order) * 0.09)
+		order += 1
+
+	_layout_ui()
+	_hint_label.text = "← →  scegli      Invio  conferma      Esc  indietro"
+	_cards[_selected].tremble()
+	_focus_sub_button(0)
+
+
+## Richiude i pulsanti, se sono aperti.
+func _close_submenu(animate: bool = true) -> void:
+	if _submenu_row == null:
+		return
+
+	var row: HBoxContainer = _submenu_row
+	_submenu_row = null
+	_submenu_action = null
+	_hint_label.text = _resolve_hint()
+	_layout_ui()
+	_update_selection_labels()
+
+	if not animate:
+		row.queue_free()
+		return
+
+	# Mentre svaniscono non devono piu' prendere click ne' focus.
+	for child: Node in row.get_children():
+		var button: Button = child as Button
+		if button != null:
+			button.release_focus()
+			button.focus_mode = Control.FOCUS_NONE
+			button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var tween: Tween = row.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(row, "modulate:a", 0.0, 0.15)
+	tween.tween_property(row, "position:y", row.position.y + 14.0, 0.15)
+	tween.chain().tween_callback(row.queue_free)
+
+
+## Un pulsante del sottomenu, in stile pixel: carta, bordo a inchiostro e
+## un "labbro" sotto che si schiaccia quando lo premi.
+func _make_sub_button(sub: MenuAction, accent: Color) -> Button:
+	var button: Button = Button.new()
+	button.text = sub.label
+	button.disabled = not sub.enabled
+	button.focus_mode = Control.FOCUS_ALL
+	button.custom_minimum_size = Vector2(280.0, 72.0)
+	button.add_theme_font_size_override("font_size", Settings.font_size(34))
+
+	# Colori e bordi vengono dal Theme globale (Settings → UiThemeBuilder):
+	# qui resta solo il contorno di focus del colore della voce.
+	var focus: StyleBoxFlat = StyleBoxFlat.new()
+	focus.draw_center = false
+	focus.border_color = accent.darkened(0.15)
+	focus.set_border_width_all(UiThemeBuilder.BORDER)
+	focus.set_expand_margin_all(6.0)
+	focus.anti_aliasing = false
+	button.add_theme_stylebox_override("focus", focus)
+
+	var describe: Callable = func() -> void: _description_label.text = sub.description
+	button.focus_entered.connect(describe)
+	button.mouse_entered.connect(describe)
+	# Il perno al centro, cosi' scala e rotazione non partono dall'angolo.
+	button.resized.connect(func() -> void: button.pivot_offset = button.size * 0.5)
+	button.pressed.connect(_on_sub_pressed.bind(button, sub))
+	return button
+
+
+## La comparsa di un pulsante: salta fuori un po' troppo grande, poi trema
+## avanti e indietro e si assesta.
+func _pop_in(button: Button, delay: float) -> void:
+	var m: float = Settings.motion_scale()
+	button.modulate.a = 0.0
+	button.scale = Vector2.ONE * 0.4
+
+	var tween: Tween = button.create_tween()
+	tween.tween_interval(delay * m)
+	tween.tween_property(button, "modulate:a", 1.0, 0.08 * m)
+	tween.parallel().tween_property(button, "scale", Vector2.ONE * 1.12, 0.14 * m) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	# Il tremolio: oscillazioni sempre piu' piccole, mentre torna alla sua misura.
+	var first: bool = true
+	# Con "Riduci il movimento" niente tremolio: il pulsante compare e basta.
+	var wobble: Array[float] = [8.0, -7.0, 5.0, -3.5, 2.0, -1.0, 0.0]
+	if Settings.reduce_motion():
+		wobble = [0.0]
+	for degrees: float in wobble:
+		tween.tween_property(button, "rotation", deg_to_rad(degrees), 0.04 * m)
+		if first:
+			tween.parallel().tween_property(button, "scale", Vector2.ONE, 0.24 * m) \
+				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			first = false
+
+
+## Un pulsante del sottomenu e' stato premuto.
+##
+## Se porta a una schermata (o chiude il gioco) il sottomenu si chiude e la
+## carta vola via come per le voci normali. Se non e' ancora pronto, trema
+## solo il pulsante e il sottomenu resta aperto.
+func _on_sub_pressed(button: Button, sub: MenuAction) -> void:
+	if _busy:
+		return
+
+	if sub.has_scene() or sub.has_sub_actions() or sub.needs_confirmation or sub.id == &"quit":
+		_close_submenu()
+		_activate_action(sub)
+		return
+
+	action_selected.emit(sub.id)
+	if show_placeholder_message:
+		_show_toast("%s: non e' ancora pronto." % sub.label, 2.5)
+	_wobble(button)
+
+
+## Il "no" di un pulsante: una scossa veloce.
+func _wobble(button: Button) -> void:
+	var tween: Tween = button.create_tween()
+	for degrees: float in [-5.0, 5.0, -3.0, 0.0]:
+		tween.tween_property(button, "rotation", deg_to_rad(degrees), 0.05)
+
+
+## Sposta il focus fra i pulsanti del sottomenu.
+##
+## [param step] 0 = primo pulsante attivo, -1/+1 = quello a sinistra/destra.
+func _focus_sub_button(step: int) -> void:
+	if _submenu_row == null:
+		return
+
+	var buttons: Array[Button] = []
+	for child: Node in _submenu_row.get_children():
+		var button: Button = child as Button
+		if button != null and not button.disabled:
+			buttons.append(button)
+	if buttons.is_empty():
+		return
+
+	var current: int = -1
+	for i: int in buttons.size():
+		if buttons[i].has_focus():
+			current = i
+	var next: int = 0 if step == 0 or current < 0 else clampi(current + step, 0, buttons.size() - 1)
+	buttons[next].call_deferred("grab_focus")
+
+
+#endregion
+
 #region Carosello
 
 
 ## Sposta la selezione di un posto.
 ##
-## [param direction] e' -1 (indietro) o +1 (avanti).
-func _move_selection(direction: int) -> void:
+## [b]Avanti[/b] ([param direction] = +1): la carta in cima esce di lato e
+## passa in fondo al mazzo, e tutte le altre salgono di un posto.
+## [b]Indietro[/b] (-1): la carta in fondo esce di lato e torna in cima.
+##
+## [param out_side] e' il lato da cui esce la carta: -1 sinistra, +1 destra.
+## Quando trascini, e' il lato verso cui l'hai tirata.
+func _move_selection(direction: int, out_side: float = -1.0) -> void:
 	if _busy or _cards.size() < 2:
 		return
+
+	# Scorrere il mazzo chiude i pulsanti della carta che se ne va.
+	_close_submenu()
 
 	var count: int = _cards.size()
 	var next: int = _selected
 
 	# Salta le voci disabilitate: non ha senso fermarsi su una carta spenta.
 	for _attempt: int in count:
-		next += direction
-		if wrap_around:
-			next = posmod(next, count)
-		elif next < 0 or next >= count:
-			return  # Siamo a un estremo e il giro completo e' spento.
+		next = posmod(next + direction, count)
 		if _action_list[next].enabled:
 			break
 
 	if next == _selected or not _action_list[next].enabled:
 		return
 
+	# La carta che "vola": quella che lascia la cima, o quella che ci arriva.
+	var flying: MenuEntryCard = _cards[_selected] if direction > 0 else _cards[next]
 	_selected = next
-	_layout_cards(true)
+	_layout_cards(true, false, flying, direction, out_side)
 
 
 ## Porta la selezione su "Esci" e la sceglie: e' quello che fa Esc.
@@ -703,48 +969,39 @@ func _activate_quit_entry() -> void:
 	# per sbaglio quando Esc non e' una scorciatoia voluta.
 
 
-## Calcola dove va messa una carta, in base a quanto dista dal centro.
+## Quanto e' in fondo al mazzo una carta: 0 = in cima, 1 = subito dietro...
 ##
-## [param rel] e' la distanza dal centro: 0 = la carta selezionata, 1 = quella
-## subito a destra, -2 = due posti a sinistra, e cosi' via.
+## Il mazzo gira: la carta dopo l'ultima e' di nuovo la prima, per questo
+## quella in cima, quando scorri, finisce in fondo.
+func _depth_of(card_index: int) -> int:
+	return posmod(card_index - _selected, _cards.size())
+
+
+## Dove va una carta, in base a quanto e' in fondo al mazzo.
 ##
-## [b]Il trucco del ventaglio:[/b] un solo numero decide tutto. Piu' la carta
-## e' lontana, piu' e' piccola, piu' ruotata, piu' in basso e piu' sbiadita.
-## E' per questo che sembra un mazzo steso sul tavolo e non una fila di
-## riquadri.
-func _target_for(rel: int) -> Dictionary:
+## [b]Il trucco del mazzo in mano:[/b] ogni carta dietro spunta un po' in alto
+## a destra, e' un filo piu' piccola, piu' scura e un po' storta. Basta questo
+## perche' sembri un blocco di carte tenuto in mano e non una pila di riquadri.
+func _target_for(depth: int, card: MenuEntryCard) -> Dictionary:
 	var center: Vector2 = Vector2(size.x * 0.5, size.y * carousel_center_ratio)
-	var steps: int = absi(rel)
-
-	if steps > visible_side:
-		# Fuori scena: la parcheggiamo appena oltre il bordo, invisibile.
-		# Serve a non avere carte tutte ammassate nello stesso punto.
-		var side: float = _sign_of(rel)
-		return {
-			"position": Vector2(
-				center.x + side * (card_size.x * float(visible_side + 1) + card_spacing),
-				center.y
-			) - card_size * 0.5,
-			"scale": Vector2.ONE * pow(neighbour_scale, float(visible_side + 1)),
-			"rotation": deg_to_rad(side * fan_rotation * 3.0),
-			"alpha": 0.0,
-			"focused": false,
-		}
-
-	var offset: Vector2 = Vector2(float(rel) * card_spacing, pow(float(steps), 1.5) * 6.0)
-	if rel == 0:
-		# La carta al centro si alza un po': sembra "tirata su" dal mazzo.
-		offset.y -= 16.0
+	var shown: int = mini(depth, stack_depth)
+	var shade: float = clampf(1.0 - stack_darken * float(shown), 0.3, 1.0)
 
 	return {
-		"position": center + offset - card_size * 0.5,
-		"scale": Vector2.ONE * pow(neighbour_scale, float(steps)),
-		# La rotazione cresce, ma sempre meno: il ventaglio si apre senza che
-		# le carte ai bordi si mettano di traverso.
-		"rotation": deg_to_rad(_sign_of(rel) * pow(float(steps), 0.85) * fan_rotation),
-		"alpha": clampf(1.0 - float(steps) * neighbour_fade, 0.0, 1.0),
-		"focused": rel == 0,
+		"position": center + stack_offset * float(shown) - card_size * 0.5,
+		"scale": Vector2.ONE * (1.0 - stack_scale_step * float(shown)),
+		# La carta in cima sta dritta: e' quella che stai guardando.
+		"rotation": 0.0 if depth == 0 else deg_to_rad(_jitter_for(card)),
+		# Le carte oltre [member stack_depth] restano nascoste dietro l'ultima.
+		"color": Color(shade, shade, shade, 1.0 if depth <= stack_depth else 0.0),
+		"focused": depth == 0,
 	}
+
+
+## L'inclinazione, sempre la stessa, di una carta quando sta dietro.
+func _jitter_for(card: MenuEntryCard) -> float:
+	var h: int = absi(card.title_text.hash()) + card.index * 31
+	return (float(h % 1000) / 999.0 * 2.0 - 1.0) * stack_jitter
 
 
 ## Porta tutte le carte nella posizione che gli spetta.
@@ -752,40 +1009,91 @@ func _target_for(rel: int) -> Dictionary:
 ## [param animate] false piazza tutto di colpo: serve al primo giro e quando
 ## cambia la dimensione della finestra.
 ## [param deal_in] true aggiunge il ritardo a scalare dell'ingresso iniziale.
-func _layout_cards(animate: bool, deal_in: bool = false) -> void:
+## [param flying] e' la carta che passa dalla cima al fondo (o viceversa): lei
+## non scorre e basta, esce di lato e rientra dall'altra parte del mazzo.
+func _layout_cards(
+	animate: bool,
+	deal_in: bool = false,
+	flying: MenuEntryCard = null,
+	direction: int = 0,
+	out_side: float = -1.0
+) -> void:
 	if _cards.is_empty():
 		return
 	if size.x < 10.0 or size.y < 10.0:
 		return
 
+	var count: int = _cards.size()
 	for card: MenuEntryCard in _cards:
 		if not is_instance_valid(card):
 			continue
-		var rel: int = _relative_offset(card.index)
-		_apply_target(card, _target_for(rel), animate, deal_in, absi(rel))
+		var depth: int = _depth_of(card.index)
+		var target: Dictionary = _target_for(depth, card)
+		if animate and card == flying:
+			_fly_card(card, target, direction, out_side)
+		else:
+			# All'ingresso escono prima le carte del fondo: il mazzo si forma
+			# dal basso, come quando le raccogli una sull'altra.
+			var order: int = count - 1 - depth if deal_in else depth
+			_apply_target(card, target, animate, deal_in, order)
 
-	# L'ordine di disegno: prima le carte lontane, per ultima quella
-	# selezionata. Cosi' la selezione sta sempre sopra a tutte le altre.
 	_reorder_cards()
+
+	# Mentre esce di lato, la carta che vola resta dove stava: sopra a tutte se
+	# lascia la cima, sotto a tutte se arriva dal fondo. Cambia strato a meta'
+	# del volo, in [method _fly_card].
+	if animate and flying != null and is_instance_valid(flying):
+		_card_layer.move_child(flying, _card_layer.get_child_count() - 1 if direction > 0 else 0)
+
 	_update_selection_labels()
 
 
-## Quanti posti dista una carta dal centro, tenendo conto del giro completo.
-func _relative_offset(card_index: int) -> int:
-	var count: int = _cards.size()
-	var rel: int = card_index - _selected
+## Il volo di una carta da un capo all'altro del mazzo.
+##
+## Due tempi: prima esce di lato (sfilata dal mazzo), poi cambia strato e
+## scivola nel suo nuovo posto. E' il cambio di strato a meta' strada che fa
+## sembrare che la carta passi [i]dietro[/i] alle altre.
+func _fly_card(card: MenuEntryCard, target: Dictionary, direction: int, out_side: float) -> void:
+	card.kill_tween()
 
-	if not wrap_around or count < 3:
-		return rel
+	var front: Dictionary = _target_for(0, card)
+	var out_position: Vector2 = front["position"] + Vector2(out_side * card_size.x * 0.82, -card_size.y * 0.06)
+	var half: float = slide_duration * 0.5
+	var trans: Tween.TransitionType = Tween.TRANS_BACK if slide_overshoot else Tween.TRANS_CUBIC
+	var final_color: Color = target["color"]
+	var middle_color: Color = card.modulate.lerp(final_color, 0.5)
+	var focused: bool = target["focused"]
 
-	# Con il giro completo scegliamo sempre la strada piu' corta: cosi' una
-	# carta non attraversa tutto lo schermo per spostarsi di un posto solo.
-	var half: int = count / 2
-	if rel > half:
-		rel -= count
-	elif rel < -half:
-		rel += count
-	return rel
+	var tween: Tween = card.create_tween()
+	card.set_tween(tween)
+	tween.set_parallel(true)
+
+	# --- 1. Fuori, di lato ---
+	tween.tween_property(card, "position", out_position, half) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(card, "rotation", deg_to_rad(out_side * 14.0), half) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(card, "scale", Vector2.ONE, half)
+	tween.tween_property(card, "modulate", middle_color, half)
+	tween.tween_method(card.apply_accent, card.accent_mix, 0.0, half)
+
+	# --- 2. Cambio di strato: dietro a tutte, o davanti a tutte ---
+	tween.chain().tween_callback(func() -> void:
+		if not is_instance_valid(card):
+			return
+		_card_layer.move_child(card, 0 if direction > 0 else _card_layer.get_child_count() - 1)
+		card.set_focused(focused)
+	)
+
+	# --- 3. Dentro, al nuovo posto ---
+	tween.chain().tween_property(card, "position", target["position"], half) \
+		.set_trans(trans).set_ease(Tween.EASE_OUT)
+	tween.tween_property(card, "rotation", target["rotation"], half) \
+		.set_trans(trans).set_ease(Tween.EASE_OUT)
+	tween.tween_property(card, "scale", target["scale"], half) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(card, "modulate", final_color, half)
+	tween.tween_method(card.apply_accent, 0.0, 1.0 if focused else 0.0, half)
 
 
 ## Applica a una carta la sua posizione, con o senza animazione.
@@ -794,27 +1102,27 @@ func _apply_target(
 	target: Dictionary,
 	animate: bool,
 	deal_in: bool,
-	steps: int
+	order: int
 ) -> void:
 	card.kill_tween()
 
-	var alpha: float = target["alpha"]
+	var color: Color = target["color"]
 	var focused: bool = target["focused"]
 
 	if not animate:
 		card.position = target["position"]
 		card.scale = target["scale"]
 		card.rotation = target["rotation"]
-		card.modulate.a = alpha
+		card.modulate = color
 		card.set_focused(focused)
 		card.apply_accent(1.0 if focused else 0.0)
 		return
 
 	var duration: float = deal_duration if deal_in else slide_duration
-	var delay: float = float(steps) * deal_stagger if deal_in else 0.0
+	var delay: float = float(order) * deal_stagger if deal_in else 0.0
 
 	# TRANS_BACK fa "sforare" la carta un po' oltre la sua posizione e poi
-	# tornare indietro: e' l'esitazione di una carta che esce dal mazzo.
+	# tornare indietro: e' l'assestamento di una carta che si appoggia al mazzo.
 	var trans: Tween.TransitionType = Tween.TRANS_BACK if slide_overshoot else Tween.TRANS_CUBIC
 
 	var tween: Tween = card.create_tween()
@@ -824,38 +1132,38 @@ func _apply_target(
 	tween.tween_property(card, "position", target["position"], duration) \
 		.set_trans(trans).set_ease(Tween.EASE_OUT).set_delay(delay)
 	tween.tween_property(card, "scale", target["scale"], duration) \
-		.set_trans(trans).set_ease(Tween.EASE_OUT).set_delay(delay)
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay)
 	tween.tween_property(card, "rotation", target["rotation"], duration) \
 		.set_trans(trans).set_ease(Tween.EASE_OUT).set_delay(delay)
 
-	# La dissolvenza usa un'altra curva: con TRANS_BACK l'alfa andrebbe sopra 1
+	# Il colore usa un'altra curva: con TRANS_BACK l'alfa andrebbe sopra 1
 	# e si vedrebbe un lampo.
-	tween.tween_property(card, "modulate:a", alpha, duration * 0.7) \
+	tween.tween_property(card, "modulate", color, duration * 0.7) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT).set_delay(delay)
 
-	# L'accensione del bordo arriva un attimo dopo la carta: sembra che la
-	# carta si "apra" quando si ferma davanti a te.
+	# L'accensione del contorno arriva un attimo dopo la carta: sembra che la
+	# carta si "apra" quando arriva in cima.
 	tween.tween_method(card.apply_accent, card.accent_mix, 1.0 if focused else 0.0, duration * 0.9) \
 		.set_delay(delay + 0.05)
 
 	card.set_focused(focused)
 
 
-## Mette le carte nell'albero nell'ordine giusto di disegno.
+## Mette le carte nell'albero nell'ordine giusto di disegno: prima quelle in
+## fondo al mazzo, per ultima quella in cima.
 func _reorder_cards() -> void:
 	var ordered: Array[MenuEntryCard] = _cards.duplicate()
-	ordered.sort_custom(_is_further_than)
+	ordered.sort_custom(_is_deeper_than)
 	for i: int in range(ordered.size()):
 		_card_layer.move_child(ordered[i], i)
 
 
-## Ordina le carte dalla piu' lontana dal centro alla piu' vicina.
-func _is_further_than(a: MenuEntryCard, b: MenuEntryCard) -> bool:
-	return absi(_relative_offset(a.index)) > absi(_relative_offset(b.index))
+func _is_deeper_than(a: MenuEntryCard, b: MenuEntryCard) -> bool:
+	return _depth_of(a.index) > _depth_of(b.index)
 
 
-## L'ingresso: le carte escono una per una dal mazzo, come quando apri un
-## pacchetto di carte nuove.
+## L'ingresso: le carte salgono dal basso una alla volta e si impilano in
+## mano, come quando raccogli il mazzo dal tavolo.
 func _play_intro() -> void:
 	if size.x < 10.0 or size.y < 10.0:
 		call_deferred("_play_intro")
@@ -864,15 +1172,13 @@ func _play_intro() -> void:
 	_intro_done = true
 	_layout_ui()
 
-	# Prima le impiliamo tutte fuori a destra, ruotate e invisibili: e' il
-	# "mazzo chiuso" da cui poi escono una alla volta.
 	for card: MenuEntryCard in _cards:
 		if not is_instance_valid(card):
 			continue
 		card.position = _deck_position() - card_size * 0.5
-		card.scale = Vector2.ONE * 0.62
-		card.rotation = deg_to_rad(-24.0)
-		card.modulate.a = 0.0
+		card.scale = Vector2.ONE * 0.9
+		card.rotation = deg_to_rad(-18.0 + float(card.index % 5) * 9.0)
+		card.modulate = Color(1, 1, 1, 0)
 		card.set_focused(false)
 		card.apply_accent(0.0)
 
@@ -880,9 +1186,9 @@ func _play_intro() -> void:
 	_animate_in()
 
 
-## Dove sta il "mazzo chiuso" da cui escono le carte.
+## Da dove arrivano le carte all'avvio: da sotto il bordo dello schermo.
 func _deck_position() -> Vector2:
-	return Vector2(size.x * 0.80, size.y * carousel_center_ratio)
+	return Vector2(size.x * 0.5, size.y + card_size.y * 0.6)
 
 
 ## La dissolvenza in ingresso dei testi.
@@ -910,13 +1216,9 @@ func _update_selection_labels() -> void:
 	_index_label.text = "%d / %d" % [_selected + 1, _action_list.size()]
 
 
-## Il segno di un numero, come float.
-func _sign_of(value: int) -> float:
-	if value > 0:
-		return 1.0
-	if value < 0:
-		return -1.0
-	return 0.0
+## Il segno di un numero: -1 se negativo, +1 altrimenti.
+func _sign_of_float(value: float) -> float:
+	return -1.0 if value < 0.0 else 1.0
 
 
 ## Mostra un messaggio in basso, che svanisce da solo.
@@ -933,8 +1235,9 @@ func _hide_toast() -> void:
 	tween.tween_property(_toast_label, "modulate:a", 0.0, 0.35)
 
 
-## Fa passare il tempo per il messaggio temporaneo.
+## Fa passare il tempo per il messaggio temporaneo e per la rotella.
 func _process(delta: float) -> void:
+	_scroll_cooldown = maxf(_scroll_cooldown - delta, 0.0)
 	if _toast_time_left <= 0.0:
 		return
 	_toast_time_left -= delta
@@ -942,24 +1245,50 @@ func _process(delta: float) -> void:
 		_hide_toast()
 
 
-## Scorre le carte con la rotella del mouse.
+## Scorre il mazzo con la rotella del mouse o con due dita sul trackpad.
 ##
 ## Sta in _input e non in _unhandled_input di proposito: le carte usano
 ## MOUSE_FILTER_STOP per ricevere i click, e quello consumerebbe anche la
 ## rotella prima che arrivi qui.
+##
+## [b]La pausa fra uno scatto e l'altro[/b] ([member _scroll_cooldown]) serve
+## al trackpad: un solo gesto manda decine di eventi, e senza pausa il mazzo
+## girerebbe tutto in un colpo.
 func _input(event: InputEvent) -> void:
+	if _confirm_layer.visible or Settings.is_menu_open():
+		return
+
+	var pan: InputEventPanGesture = event as InputEventPanGesture
+	if pan != null:
+		_pan_accum += pan.delta.x + pan.delta.y
+		if absf(_pan_accum) > 1.5 and _scroll_cooldown <= 0.0:
+			_scroll_step(1 if _pan_accum > 0.0 else -1)
+			_pan_accum = 0.0
+		get_viewport().set_input_as_handled()
+		return
+
 	var wheel: InputEventMouseButton = event as InputEventMouseButton
 	if wheel == null or not wheel.pressed:
 		return
-	if _confirm_layer.visible:
-		return
 
-	if wheel.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-		_move_selection(1)
-		get_viewport().set_input_as_handled()
-	elif wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
-		_move_selection(-1)
-		get_viewport().set_input_as_handled()
+	var direction: int = 0
+	match wheel.button_index:
+		MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_WHEEL_RIGHT:
+			direction = 1
+		MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT:
+			direction = -1
+		_:
+			return
+
+	if _scroll_cooldown <= 0.0:
+		_scroll_step(direction)
+	get_viewport().set_input_as_handled()
+
+
+## Uno scatto di rotella: sposta il mazzo e fa partire la pausa.
+func _scroll_step(direction: int) -> void:
+	_move_selection(direction)
+	_scroll_cooldown = slide_duration * 0.6
 
 
 #endregion
@@ -968,7 +1297,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventKey):
+	if not (event is InputEventKey) or Settings.is_menu_open():
 		return
 
 	var key_event: InputEventKey = event as InputEventKey
@@ -981,6 +1310,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		if key_event.keycode == KEY_ESCAPE:
 			_on_confirm_no()
 			get_viewport().set_input_as_handled()
+		return
+
+	# Con i pulsanti aperti le frecce si muovono fra i pulsanti (ci pensa
+	# Godot, con il focus) e Esc li richiude. Su e giu' non fanno niente:
+	# scorrere il mazzo per sbaglio chiuderebbe il sottomenu.
+	if _submenu_row != null:
+		match key_event.keycode:
+			KEY_ESCAPE:
+				_close_submenu()
+			KEY_A, KEY_LEFT:
+				_focus_sub_button(-1)
+			KEY_D, KEY_RIGHT:
+				_focus_sub_button(1)
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+				_activate_selected()
+			_:
+				return
+		get_viewport().set_input_as_handled()
 		return
 
 	match key_event.keycode:
@@ -1015,7 +1362,7 @@ func _resolve_title() -> String:
 func _resolve_hint() -> String:
 	if not hint.strip_edges().is_empty():
 		return hint
-	return "← →  scorri le carte      Invio  scegli      Esc  esci"
+	return "← →  scorri il mazzo      trascina la carta per passarla in fondo      Invio  scegli      Esc  esci"
 
 
 ## La riga in fondo: quella impostata, oppure una generica.
@@ -1023,6 +1370,54 @@ func _resolve_footer() -> String:
 	if not footer.strip_edges().is_empty():
 		return footer
 	return "Godot %s" % Engine.get_version_info().get("string", "")
+
+
+## Legge dalle impostazioni tutto cio' che il giocatore puo' personalizzare
+## del menu (scheda Tema): colori, titoli, mazzo e velocita' delle animazioni.
+##
+## [b]Le impostazioni vincono sull'inspector:[/b] l'inspector da' i valori di
+## partenza (e il titolo, se il giocatore non ne sceglie uno), il giocatore
+## decide il resto.
+func _read_settings() -> void:
+	background_color = Settings.color("background")
+	accent_color = Settings.color("accent")
+	_text_color = Settings.color("text")
+
+	var custom_title: String = str(Settings.get_value("theme", "menu_title", "")).strip_edges()
+	title = custom_title if not custom_title.is_empty() else str(_inspector.get("title", ""))
+	subtitle = str(Settings.get_value("theme", "menu_subtitle", subtitle))
+
+	ambient_cards = bool(Settings.get_value("theme", "ambient_cards", ambient_cards))
+	stack_jitter = float(Settings.get_value("theme", "stack_jitter", stack_jitter))
+	stack_depth = int(Settings.get_value("theme", "stack_depth", stack_depth))
+
+	var m: float = Settings.motion_scale()
+	slide_duration = float(_inspector["slide_duration"]) * m
+	deal_duration = float(_inspector["deal_duration"]) * m
+	deal_stagger = float(_inspector["deal_stagger"]) * m
+	slide_overshoot = bool(_inspector["slide_overshoot"]) and not Settings.reduce_motion()
+
+
+## Il tema e' cambiato: ricostruiamo il menu con i colori nuovi, senza rifare
+## l'ingresso e lasciando in cima la stessa carta.
+func _on_theme_changed() -> void:
+	_read_settings()
+	if not _intro_done:
+		return
+
+	var keep: int = _selected
+	_close_submenu(false)
+	for child: Node in get_children():
+		remove_child(child)
+		child.queue_free()
+	_cards.clear()
+	_busy = false
+
+	_build_ui()
+	_build_cards()
+	_selected = clampi(keep, 0, maxi(_cards.size() - 1, 0))
+	_layout_ui()
+	_layout_cards(false)
 
 
 ## La finestra ha cambiato dimensione: rimettiamo a posto tutto.

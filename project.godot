@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Settings="*res://Settings/settings.gd"
 DialogueManager="*uid://c3rodes2l3gxb"
 
 [dialogue_manager]
@@ -34,6 +35,10 @@ window/stretch/aspect="expand"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/dialogue_manager/plugin.cfg")
+
+[gui]
+
+theme/custom="res://Settings/game_theme.tres"
 
 [input]
 
