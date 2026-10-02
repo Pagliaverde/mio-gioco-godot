@@ -256,6 +256,81 @@ macchie ad anello e fibre. Tutto dipende da un seed preso dal titolo della
 voce: la stessa voce ha sempre le stesse crepe. Le crepe evitano il cartiglio
 del titolo, cosi' il testo resta leggibile.
 
+### I simboli sulle carte (emblemi)
+
+Dentro il riquadro di ogni carta c'è un **emblema**: la maschera per Storia, il
+mazzo per Il tuo deck, l'ingranaggio per Opzioni, la spada per la battaglia,
+la porta con la freccia per Esci, il triangolo per Riprendi, la croce per Nuova
+Partita, la tenda per il Negozio.
+
+Anche gli emblemi sono **disegnati in codice**, come matrici di pixel scritte a
+mano in `menu_card_art.gd`:
+
+```gdscript
+&"mask": [
+	"................",
+	"....########....",
+	"..##--------##..",
+	".#------------#.",
+	".#--##----##--#.",
+	...
+],
+```
+
+I caratteri sono quattro:
+
+| Carattere | Cosa dipinge |
+|---|---|
+| `.` | niente: si vede il riquadro della carta |
+| `#` | inchiostro (il contorno) |
+| `-` | carta chiara (il riempimento) |
+| `+` | luce, per i punti in rilievo |
+
+Ogni matrice è **16 × 16** e viene ingrandita con un fattore intero per
+riempire il riquadro lasciando un margine (`EMBLEM_FILL`), poi centrata.
+
+**Perché disegnati così e non come immagini.** Nascono sulla stessa griglia di
+pixel della carta — quindi non si può sbagliare l'allineamento — e soprattutto
+**invecchiano con la carta**: macchie, puntini e crepe ci passano sopra come su
+tutto il resto. Un'immagine incollata sopra resterebbe nuova e pulita in mezzo a
+una carta vecchia.
+
+### Come assegnare un simbolo a una voce
+
+Il campo **Emblem** di ogni voce in `Actions`. I nomi disponibili sono in
+`MenuCardArt.EMBLEMS`:
+
+| Nome | Il disegno | Chi lo usa |
+|---|---|---|
+| `mask` | Una maschera che sorride | Storia |
+| `deck` | Un mazzo di carte con un seme | Il tuo deck |
+| `shop` | Una tenda a righe sul bancone | Negozio |
+| `gear` | Un ingranaggio a quattro denti | Opzioni |
+| `sword` | Una spada in verticale | Prova una battaglia |
+| `exit` | Una porta con la freccia che esce | Esci |
+| `play` | Un triangolo | Riprendi |
+| `plus` | Una croce | Nuova Partita |
+
+Le tre cose che riempiono il riquadro, in ordine di precedenza:
+
+1. **Art** — la tua illustrazione, se ne hai messa una;
+2. **Emblem** — il simbolo disegnato;
+3. niente — la carta mostra la lettera iniziale del titolo.
+
+Quindi per mettere la tua grafica su una voce basta compilare **Art**: ha la
+precedenza su tutto. E se scrivi un nome di emblema che non esiste, la carta usa
+la lettera e ti avvisa in console invece di lasciare il riquadro vuoto.
+
+### Aggiungere un emblema nuovo
+
+1. Apri `menu_card_art.gd` e cerca `const EMBLEMS`.
+2. Aggiungi una voce: il nome che vuoi e 16 righe da 16 caratteri.
+3. Compila il campo **Emblem** della voce con quel nome.
+
+Puoi disegnarlo direttamente nel file, un carattere per pixel. Se una matrice
+ha il numero di righe sbagliato, il gioco lo dice in console e usa la lettera
+invece di disegnare qualcosa a metà.
+
 ### L'ingresso
 
 All'avvio le carte partono da sotto il bordo dello schermo e salgono una per
@@ -448,7 +523,8 @@ Le voci di default sono definite in `main_menu.gd`, nella funzione
 | **Scene Path** | — | La scena da caricare quando scegli la voce |
 | **Needs Confirmation** | — | Se `true` chiede "sei sicuro?" prima di eseguire |
 | **Sub Actions** | — | Sotto-voci: se ce ne sono, la voce apre i loro pulsanti sotto la carta |
-| **Art** | Carta | L'illustrazione sulla carta |
+| **Art** | Carta | La tua illustrazione. Ha la precedenza sull'emblema |
+| **Emblem** | Carta | Il simbolo disegnato (`mask`, `deck`, `gear`...). Vedi [I simboli sulle carte](#i-simboli-sulle-carte-emblemi) |
 | **Accent** | Carta | Il colore della carta. Alpha 0 = colore automatico |
 
 > **Perche' `Enabled` e' utile:** puoi lasciare in elenco le voci che non hai
@@ -628,7 +704,8 @@ Il pulsante **Nuova Partita** della voce **Storia** punta gia' a
 | `shake()` | Fa oscillare la carta (risposta "no") |
 | `card_pressed(card)` | Segnale: click senza trascinare |
 | `card_dragged(card, offset)` / `card_released(card, offset)` | Segnali del trascinamento |
-| `MenuCardArt.build(size, colore, seed, enabled)` | Dipinge la carta in pixel art |
+| `MenuCardArt.build(size, colore, seed, enabled, stile, emblema)` | Dipinge la carta in pixel art |
+| `MenuCardArt.EMBLEMS` | I simboli disponibili, come matrici di pixel |
 
 ### `MenuAction` (la voce)
 

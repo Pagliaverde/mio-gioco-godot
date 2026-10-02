@@ -43,10 +43,28 @@ class_name MenuAction extends Resource
 
 ## L'immagine mostrata sulla carta di questa voce.
 ##
-## [b]E' qui che metti la tua illustrazione.[/b] Lascia vuoto e la carta
-## mostrera' la lettera iniziale del titolo su un fondo del colore della voce:
-## funziona lo stesso, serve solo a vedere come viene.
+## [b]E' qui che metti la tua illustrazione.[/b] Se la lasci vuota, la carta
+## mostra l'emblema ([member emblem]); se non c'e' nemmeno quello, la lettera
+## iniziale del titolo.
 @export var art: Texture2D
+
+## Il simbolo disegnato nella carta, se non hai un'immagine tua.
+##
+## I nomi disponibili sono in [constant MenuCardArt.EMBLEMS]:
+## [codeblock]
+##   mask   una maschera che sorride
+##   deck   un mazzo di carte
+##   shop   una tenda da negozio
+##   gear   un ingranaggio
+##   sword  una spada
+##   exit   una porta con la freccia
+##   play   un triangolo: riprendi
+##   plus   una croce: ricomincia
+## [/codeblock]
+##
+## Lascialo vuoto e la carta mostra la lettera iniziale. Se scrivi un nome che
+## non esiste, la carta usa la lettera e ti avvisa in console.
+@export var emblem: StringName = &""
 
 ## Il colore della carta: bordo, fascia del titolo e ombra.
 ##
@@ -72,13 +90,15 @@ static func of(
 	action_id: StringName,
 	action_label: String,
 	action_description: String = "",
-	action_scene: String = ""
+	action_scene: String = "",
+	action_emblem: StringName = &""
 ) -> MenuAction:
 	var action: MenuAction = MenuAction.new()
 	action.id = action_id
 	action.label = action_label
 	action.description = action_description
 	action.scene_path = action_scene
+	action.emblem = action_emblem
 	return action
 
 

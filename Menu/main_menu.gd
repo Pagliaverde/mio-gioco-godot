@@ -663,41 +663,56 @@ static func build_default_actions() -> Array[MenuAction]:
 	var list: Array[MenuAction] = []
 
 	# Storia non porta a una schermata da sola: apre tre pulsanti sotto la carta.
+	# La sua maschera e' il segno del gioco: e' la prima cosa che si vede.
 	var story: MenuAction = MenuAction.of(
 		&"story", "Storia",
+<<<<<<< Updated upstream
 		"Fuori Copione: ti svegli senza volto in un teatro che e' tutto il mondo. Esci, se ci riesci."
 	)
 	story.sub_actions = [
 		MenuAction.of(&"continue", "Riprendi", "Continua dall'ultimo salvataggio."),
 		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia dal camerino. Il numero sul muro sale di uno.", STORY_SCENE),
 		MenuAction.of(&"story_options", "Altre Opzioni", "Difficolta', capitoli e altre impostazioni della storia."),
+=======
+		"Inizia l'avventura e attraversa i dungeon.",
+		"", &"mask"
+	)
+	story.sub_actions = [
+		MenuAction.of(&"continue", "Riprendi", "Continua dall'ultimo salvataggio.", "", &"play"),
+		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia l'avventura da capo.", "res://Scene/Main.tscn", &"plus"),
+		MenuAction.of(&"story_options", "Altre Opzioni", "Difficolta', capitoli e altre impostazioni della storia.", "", &"gear"),
+>>>>>>> Stashed changes
 	]
 	list.append(story)
 
 	list.append(MenuAction.of(
 		&"deck", "Il tuo deck",
-		"Componi il mazzo con le carte che hai raccolto."
+		"Componi il mazzo con le carte che hai raccolto.",
+		"", &"deck"
 	))
 
 	list.append(MenuAction.of(
 		&"shop", "Negozio",
-		"Compra carte singole o apri pacchetti."
+		"Compra carte singole o apri pacchetti.",
+		"", &"shop"
 	))
 
 	list.append(MenuAction.of(
 		&"options", "Opzioni",
-		"Impostazioni di gioco, audio e video."
+		"Impostazioni di gioco, audio e video.",
+		"", &"gear"
 	))
 
 	list.append(MenuAction.of(
 		&"battle", "Prova una battaglia",
 		"Salta subito a una partita di prova contro un avversario.",
-		"res://Cards/table/play_table.tscn"
+		"res://Cards/table/play_table.tscn", &"sword"
 	))
 
 	var quit_action: MenuAction = MenuAction.of(
 		&"quit", "Esci",
-		"Chiudi il gioco."
+		"Chiudi il gioco.",
+		"", &"exit"
 	)
 	quit_action.needs_confirmation = true
 	list.append(quit_action)
@@ -725,6 +740,7 @@ func _build_cards() -> void:
 		card.card_size = card_size
 		card.title_text = action.label
 		card.art = action.art
+		card.emblem = action.emblem
 		card.enabled = action.enabled
 		card.title_font_size = card_title_size
 		card.index = i

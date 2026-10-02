@@ -133,6 +133,29 @@ Il pannello entra con una comparsa breve (`POP_TIME`, 0,16 s) che viene
 **annullata** se il giocatore ha attivo *Impostazioni → Accessibilità → Riduci
 movimento*.
 
+> ⚠️ **Trappola da conoscere, se metti mano a questo file.**
+> In `_ready()` c'è `set_anchors_and_offsets_preset(...)`, **non**
+> `set_anchors_preset(...)`. Non è un dettaglio: sono due cose diverse.
+>
+> `set_anchors_preset` cambia gli ancoraggi ma **non azzera gli offset**, li
+> sposta per lasciare il controllo dov'era. Questo menu viene creato in codice
+> e `Pause.open()` lo aggiunge all'albero **prima** che parta `_ready()`:
+> quindi quando la chiamata gira, il nodo è già dentro l'albero e la
+> "dimensione del genitore" è lo schermo. Risultato: l'offset destro diventa
+> `-1920` e quello in basso `-1080`, e la dimensione collassa a **zero**.
+>
+> Cosa si vede in quel caso: **il velo scuro non si vede** (è largo zero) e
+> **il menu finisce nell'angolo in alto a sinistra** (il `CenterContainer` non
+> ha spazio per centrare niente). È esattamente il bug che c'era prima.
+>
+> La stessa chiamata **prima** di `add_child` è invece innocua, perché la
+> dimensione del genitore è ancora zero. È per questo che il menu principale
+> funziona: `main_menu.gd` imposta gli anchor prima di aggiungere i nodi, e la
+> radice ha già gli anchor scritti dentro `main_menu.tscn`.
+>
+> Morale: se il nodo è già nell'albero usa
+> `set_anchors_and_offsets_preset`, che azzera anche gli offset.
+
 ### Aggiungere o togliere una voce
 
 Tutto dentro `_build()` in `pause_menu.gd`:
@@ -146,3 +169,41 @@ I pulsanti sono in una `VBoxContainer`, quindi la navigazione con le frecce è
 automatica: non c'è niente da collegare a mano. Il focus parte su **Riprendi**,
 e sulla conferma parte su **No**, così premere Invio per abitudine non chiude
 niente per sbaglio.
+
+### ⚠️ Il focus non deve uscire dalla schermata in primo piano
+
+Un velo a tutto schermo blocca i **click**, ma **non la tastiera**. La
+navigazione con le frecce non passa dal velo: Godot cerca il prossimo controllo
+focalizzabile fra tutti quelli *visibili*, e i pulsanti dietro sono ancora
+visibili. Quindi senza precauzioni, con la domanda "Sì / No" aperta, le frecce
+finivano su "Riprendi" o "Opzioni".
+
+La soluzione è spegnere il focus dei pulsanti dietro finché la schermata in
+primo piano è aperta:
+
+```gdscript
+func _set_background_focus(can_focus: bool) -> void:
+	var mode: Control.FocusMode = Control.FOCUS_ALL if can_focus else Control.FOCUS_NONE
+	for button: Button in _buttons:
+		button.focus_mode = mode
+```
+
+Vale per **due** schermate, e in entrambi i casi va fatto e disfatto:
+
+| Schermata in primo piano | Chi spegne il focus | Chi lo riaccende |
+|---|---|---|
+| La conferma "Sì / No" | `_ask_confirmation()` | `_close_confirmation()` |
+| Le impostazioni (voce "Opzioni") | `_on_settings_toggled(true)` | `_on_settings_toggled(false)` |
+
+Due dettagli che rendono il tutto più solido:
+
+- **Il focus si ricorda.** Prima di aprire la domanda il menu salva chi aveva il
+  focus (`_focus_before_confirm`) e ce lo rimette alla chiusura. Così rispondendo
+  "No" non si riparte sempre da "Riprendi".
+- **Un pulsante focalizzato perde il focus da solo** quando riceve
+  `FOCUS_NONE`, quindi non serve toglierlo a mano prima.
+
+> **Se aggiungi una schermata sopra a questa** (un'altra conferma, un popup),
+> ricordati di spegnere il focus qui dietro: è la stessa trappola ogni volta.
+> Il menu principale non ha il problema perché le sue carte hanno
+> `focus_mode = FOCUS_NONE`: non possono prendere il focus in nessun caso.

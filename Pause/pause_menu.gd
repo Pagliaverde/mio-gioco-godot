@@ -36,16 +36,40 @@ var _buttons: Array[Button] = []
 var _confirm_layer: Control
 var _confirm_text: Label
 var _confirm_action: Callable = Callable()
+var _confirm_yes: Button
+var _confirm_no: Button
+
+## Chi aveva il focus prima che si aprisse la domanda, per rimetterlo dopo.
+var _focus_before_confirm: Control = null
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# [b]Qui serve set_anchors_and_offsets_preset, NON set_anchors_preset.[/b]
+	#
+	# set_anchors_preset cambia gli ancoraggi ma non azzera gli offset: li
+	# "sposta" per lasciare il controllo esattamente dov'era. Su un nodo gia'
+	# dentro l'albero -- ed e' questo il caso, perche' Pause.open() lo ha
+	# appena aggiunto al CanvasLayer -- gli offset finiscono a -larghezza e
+	# -altezza, e la dimensione collassa a zero.
+	#
+	# Il sintomo: il velo scuro non si vede (e' largo zero) e il menu finisce
+	# nell'angolo in alto a sinistra, perche' il CenterContainer non ha spazio
+	# per centrare niente.
+	#
+	# set_anchors_and_offsets_preset fa anche la seconda meta' del lavoro:
+	# azzera gli offset, quindi il nodo riempie davvero lo schermo.
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	# Il gioco e' in pausa, ma questo menu deve continuare a funzionare.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	_build()
 	_refresh_status()
+
+	# Le impostazioni si aprono da qui (voce "Opzioni"). Con loro aperte sopra,
+	# questo menu deve cedere il focus: vedi _on_settings_toggled().
+	Settings.menu_toggled.connect(_on_settings_toggled)
+
 	_pop_in()
 
 	# Il focus sul primo pulsante: si comincia a navigare subito con i tasti,
@@ -57,20 +81,28 @@ func _ready() -> void:
 
 
 func _build() -> void:
+	# Da qui in giu' i nodi vengono ancorati PRIMA di entrare nell'albero, quindi
+	# basterebbe set_anchors_preset. Usiamo comunque la versione che azzera
+	# anche gli offset: e' l'idioma corretto e regge anche se un domani
+	# l'ordine di queste righe cambia.
 	var veil: ColorRect = ColorRect.new()
 	veil.color = Color(0, 0, 0, 0.78)
-	veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(veil)
 
 	var center: CenterContainer = CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 
 	_panel = PanelContainer.new()
-	_panel.pivot_offset = _panel.size * 0.5
 	center.add_child(_panel)
+	# Il pannello qui non ha ancora una dimensione: il CenterContainer la
+	# calcola al primo frame. Ricalcoliamo il perno ad ogni cambio di
+	# dimensione, cosi' la comparsa parte dal centro invece che dall'angolo
+	# in alto a sinistra (con il perno a zero, _pop_in() scalerebbe da li').
+	_panel.resized.connect(_on_panel_resized)
 
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
@@ -117,19 +149,19 @@ func _build() -> void:
 ## menu dietro e si capisce che la domanda riguarda quello.
 func _build_confirm() -> void:
 	_confirm_layer = Control.new()
-	_confirm_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_confirm_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_confirm_layer.visible = false
 	_confirm_layer.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_confirm_layer)
 
 	var veil: ColorRect = ColorRect.new()
 	veil.color = Color(0, 0, 0, 0.5)
-	veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_confirm_layer.add_child(veil)
 
 	var center: CenterContainer = CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_confirm_layer.add_child(center)
 
@@ -150,19 +182,23 @@ func _build_confirm() -> void:
 	row.add_theme_constant_override("separation", 14)
 	column.add_child(row)
 
-	var yes: Button = Button.new()
-	yes.text = "Sì"
-	yes.custom_minimum_size = Vector2(150.0, 48.0)
-	yes.add_theme_font_size_override("font_size", Settings.font_size(22))
-	yes.pressed.connect(_on_confirm_yes)
-	row.add_child(yes)
+	# Questi due sono gli unici che possono prendere il focus mentre la domanda
+	# e' aperta: il menu dietro viene spento da _set_background_focus().
+	_confirm_yes = Button.new()
+	_confirm_yes.text = "Sì"
+	_confirm_yes.custom_minimum_size = Vector2(150.0, 48.0)
+	_confirm_yes.focus_mode = Control.FOCUS_ALL
+	_confirm_yes.add_theme_font_size_override("font_size", Settings.font_size(22))
+	_confirm_yes.pressed.connect(_on_confirm_yes)
+	row.add_child(_confirm_yes)
 
-	var no: Button = Button.new()
-	no.text = "No"
-	no.custom_minimum_size = Vector2(150.0, 48.0)
-	no.add_theme_font_size_override("font_size", Settings.font_size(22))
-	no.pressed.connect(_on_confirm_no)
-	row.add_child(no)
+	_confirm_no = Button.new()
+	_confirm_no.text = "No"
+	_confirm_no.custom_minimum_size = Vector2(150.0, 48.0)
+	_confirm_no.focus_mode = Control.FOCUS_ALL
+	_confirm_no.add_theme_font_size_override("font_size", Settings.font_size(22))
+	_confirm_no.pressed.connect(_on_confirm_no)
+	row.add_child(_confirm_no)
 
 
 func _add_button(parent: Node, text: String, handler: Callable) -> Button:
@@ -192,7 +228,7 @@ func _pop_in() -> void:
 	if Settings.reduce_motion():
 		return
 
-	_panel.pivot_offset = _panel.size * 0.5
+	# Il perno lo tiene aggiornato _on_panel_resized: qui non lo tocchiamo.
 	_panel.scale = Vector2(0.94, 0.94)
 	_panel.modulate.a = 0.0
 
@@ -202,6 +238,19 @@ func _pop_in() -> void:
 	tween.set_ease(Tween.EASE_OUT)
 	tween.tween_property(_panel, "scale", Vector2.ONE, POP_TIME)
 	tween.tween_property(_panel, "modulate:a", 1.0, POP_TIME)
+
+
+## Riporta il perno al centro del pannello.
+##
+## [b]Serve perche'[/b] [method _pop_in] scala il pannello, e la scala parte
+## dal perno, che si esprime in coordinate del pannello stesso. Al momento
+## della costruzione la dimensione e' ancora zero, quindi senza questo la
+## comparsa sembrerebbe arrivare dall'angolo in alto a sinistra.
+##
+## Il segnale [signal Control.resized] lo rimette a posto anche quando cambia
+## la dimensione della finestra o la scala dell'interfaccia.
+func _on_panel_resized() -> void:
+	_panel.pivot_offset = _panel.size * 0.5
 
 
 #endregion
@@ -235,6 +284,24 @@ func _on_options_pressed() -> void:
 	Settings.open_menu()
 
 
+## Con le impostazioni aperte sopra, il menu di pausa non deve prendere il focus.
+##
+## [b]E' lo stesso problema della conferma,[/b] e per lo stesso motivo: le
+## impostazioni vivono su un altro strato, ma la navigazione da tastiera non
+## guarda gli strati, guarda l'albero dei nodi. Senza questo, con le frecce
+## dentro le impostazioni si poteva finire su "Riprendi" o "Salva" qui dietro.
+func _on_settings_toggled(is_open: bool) -> void:
+	# Se c'e' una domanda aperta comanda lei: non le togliamo il blocco.
+	if _confirm_layer.visible:
+		return
+
+	_set_background_focus(not is_open)
+
+	# Quando le impostazioni si chiudono il menu riprende a navigarsi da solo.
+	if not is_open:
+		_focus_first()
+
+
 func _on_main_menu_pressed() -> void:
 	_ask_confirmation("Tornare al menu principale?\nI progressi non salvati vanno persi.", func() -> void:
 		main_menu_requested.emit()
@@ -260,24 +327,71 @@ func _on_quit_pressed() -> void:
 func _ask_confirmation(question: String, action: Callable) -> void:
 	_confirm_action = action
 	_confirm_text.text = question
+
+	# Ricordiamo chi aveva il focus, cosi' rispondendo "No" ci si torna sopra
+	# invece di ripartire sempre da "Riprendi".
+	_focus_before_confirm = get_viewport().gui_get_focus_owner()
+
+	# [b]Il pezzo che conta:[/b] finche' la domanda e' aperta solo "Si" e "No"
+	# possono prendere il focus. Senza questo si scorreva con le frecce anche
+	# sui pulsanti dietro, perche' il velo ferma il mouse ma non la tastiera.
+	_set_background_focus(false)
+
 	_confirm_layer.visible = true
 
 	# Il focus su "No": premere Invio per abitudine non deve chiudere niente.
-	_focus_confirm_button("No")
+	_confirm_no.call_deferred("grab_focus")
+
+
+## Nasconde la domanda e rimette il menu come era prima.
+##
+## [b]Riattivare il focus dei pulsanti dietro non e' facoltativo:[/b] senza
+## quello, dopo aver risposto "No" il menu non sarebbe piu' navigabile con la
+## tastiera.
+func _close_confirmation() -> void:
+	_confirm_action = Callable()
+	_confirm_layer.visible = false
+	_set_background_focus(true)
+	_restore_focus()
+
+
+## Accende o spegne la possibilita' di dare il focus ai pulsanti del menu.
+##
+## [b]Perche' serve.[/b] Un velo a tutto schermo blocca i click, ma la
+## navigazione da tastiera non passa da li': Godot cerca il prossimo controllo
+## focalizzabile fra tutti quelli [i]visibili[/i], e i pulsanti dietro alla
+## domanda lo sono ancora. Ecco perche' con le frecce si finiva su "Riprendi"
+## o "Opzioni" mentre la conferma era aperta.
+##
+## Un pulsante che ha il focus e riceve [constant Control.FOCUS_NONE] lo perde
+## da solo, quindi non serve toglierlo a mano.
+func _set_background_focus(can_focus: bool) -> void:
+	var mode: Control.FocusMode = Control.FOCUS_ALL if can_focus else Control.FOCUS_NONE
+	for button: Button in _buttons:
+		button.focus_mode = mode
+
+
+## Rimette il focus dove stava prima della domanda.
+func _restore_focus() -> void:
+	var target: Control = _focus_before_confirm
+	_focus_before_confirm = null
+
+	if target != null and is_instance_valid(target) and target.focus_mode != Control.FOCUS_NONE:
+		target.call_deferred("grab_focus")
+		return
+
+	_focus_first()
 
 
 func _on_confirm_yes() -> void:
 	var action: Callable = _confirm_action
-	_confirm_action = Callable()
-	_confirm_layer.visible = false
+	_close_confirmation()
 	if action.is_valid():
 		action.call()
 
 
 func _on_confirm_no() -> void:
-	_confirm_action = Callable()
-	_confirm_layer.visible = false
-	_focus_first()
+	_close_confirmation()
 
 
 #endregion
@@ -330,14 +444,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func _focus_first() -> void:
 	if not _buttons.is_empty():
 		_buttons[0].call_deferred("grab_focus")
-
-
-func _focus_confirm_button(text: String) -> void:
-	for node: Node in _confirm_layer.find_children("*", "Button", true, false):
-		var button: Button = node as Button
-		if button != null and button.text == text:
-			button.call_deferred("grab_focus")
-			return
 
 
 #endregion

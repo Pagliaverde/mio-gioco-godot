@@ -48,8 +48,18 @@ var card_size: Vector2 = Vector2(300, 420)
 ## Il testo grande sulla carta (es. "Storia").
 var title_text: String = "Voce"
 
-## L'immagine sulla carta. Vuota: la carta mostra la lettera iniziale.
+## L'immagine sulla carta. Vuota: la carta mostra l'emblema, o la lettera.
 var art: Texture2D = null
+
+## Il nome del simbolo da disegnare nel riquadro (vedi [constant MenuCardArt.EMBLEMS]).
+##
+## [b]Ha la precedenza sulla lettera di ripiego:[/b] e' il modo normale di
+## riempire una carta. La lettera resta solo per le voci a cui non hai ancora
+## assegnato niente.
+##
+## Se anche [member art] e' impostata, vince l'immagine: l'emblema e' un
+## ripiego disegnato, l'immagine e' una tua scelta.
+var emblem: StringName = &""
 
 ## Il colore della voce: cielo dell'illustrazione, filetto e contorno.
 var accent: Color = Color("c9772f")
@@ -89,6 +99,9 @@ var _placeholder: Label
 var _title_label: Label
 var _tween: Tween
 
+## True se [MenuCardArt] ha dipinto un emblema: lo decide lui e lo scrive qui.
+var _emblem_drawn: bool = false
+
 
 func _ready() -> void:
 	_build()
@@ -119,7 +132,10 @@ func _build() -> void:
 	if style.is_empty():
 		style = Settings.card_style()
 	var ink: Color = style.get("ink", MenuCardArt.INK)
-	var art_data: Dictionary = MenuCardArt.build(card_size, accent, _seed(), enabled, style)
+	var art_data: Dictionary = MenuCardArt.build(card_size, accent, _seed(), enabled, style, emblem)
+	# Lo decide MenuCardArt: se ha dipinto un emblema, la lettera di ripiego
+	# non serve e _apply_content() la lascia spenta.
+	_emblem_drawn = bool(art_data.get("emblem_drawn", false))
 
 	# Un unico figlio che contiene tutto. Serve per poter far oscillare la
 	# carta ("non e' ancora pronto") senza toccare posizione, scala e
@@ -226,6 +242,11 @@ func _apply_content() -> void:
 	if art != null:
 		_art_rect.texture = art
 		_art_rect.visible = true
+		_placeholder.visible = false
+	elif bool(_emblem_drawn):
+		# Il simbolo e' gia' dipinto dentro la faccia della carta: qui non
+		# c'e' niente da mostrare, basta non coprirlo con la lettera.
+		_art_rect.visible = false
 		_placeholder.visible = false
 	else:
 		_art_rect.visible = false

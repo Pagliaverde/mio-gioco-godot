@@ -41,6 +41,202 @@ static var _wear: float = 0.6
 const BAYER4: Array[int] = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 
+#region Emblemi
+
+## I simboli che stanno dentro il riquadro della carta.
+##
+## [b]Sono matrici di pixel scritte a mano,[/b] una riga per riga di pixel
+## della carta. Si leggono come un disegno: cambia un carattere e cambi un
+## pixel. Ogni matrice e' 16 x 16.
+##
+## I caratteri:
+## [codeblock]
+##   .   niente: si vede il riquadro della carta
+##   #   inchiostro: il contorno, e le parti scure
+##   -   carta chiara: il riempimento
+##   +   luce: il bianco, per i punti in rilievo
+## [/codeblock]
+##
+## [b]Perche' disegnati cosi' e non come immagini.[/b] Perche' cosi' nascono
+## sulla stessa griglia di pixel della carta, quindi non si puo' sbagliare
+## l'allineamento, e soprattutto [b]invecchiano con la carta[/b]: macchie,
+## puntini e crepe ci passano sopra come su tutto il resto. Un'immagine
+## incollata sopra resterebbe nuova e pulita in mezzo a una carta vecchia.
+const EMBLEMS: Dictionary = {
+
+	# Una maschera che sorride: e' il segno del gioco.
+	&"mask": [
+		"................",
+		"....########....",
+		"..##--------##..",
+		".#------------#.",
+		".#--##----##--#.",
+		".#--##----##--#.",
+		".#------------#.",
+		".#------------#.",
+		".#------------#.",
+		".#---##--##---#.",
+		".#----####----#.",
+		".#------------#.",
+		".#------------#.",
+		"..##--------##..",
+		"....########....",
+		"................",
+	],
+
+	# Un mazzo di carte appoggiate, con un seme su quella in cima.
+	&"deck": [
+		"................",
+		"................",
+		"..############..",
+		"..#----##----#..",
+		"..#---#++#---#..",
+		"..#----##----#..",
+		"..############..",
+		"...#----------#.",
+		"...#----------#.",
+		"...############.",
+		"....#----------#",
+		"....#----------#",
+		"....############",
+		"................",
+		"................",
+		"................",
+	],
+
+	# Una tenda a righe sopra il bancone.
+	&"shop": [
+		"................",
+		"..##.##.##.##...",
+		"..##.##.##.##...",
+		"..############..",
+		"..#----------#..",
+		"..#----------#..",
+		"..#----------#..",
+		"..#---####---#..",
+		"..#----------#..",
+		"..#----------#..",
+		"..#----------#..",
+		"..############..",
+		"................",
+		"................",
+		"................",
+		"................",
+	],
+
+	# Un ingranaggio con quattro denti.
+	&"gear": [
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		"..############..",
+		"..#----------#..",
+		"..#----------#..",
+		"###---####---###",
+		"..#---#..#---#..",
+		"..#---#..#---#..",
+		"###---####---###",
+		"..#----------#..",
+		"..#----------#..",
+		"..############..",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+	],
+
+	# Una spada in verticale: il combattimento.
+	&"sword": [
+		"................",
+		"......####......",
+		"......#--#......",
+		"....########....",
+		"....########....",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		".......##.......",
+		".......##.......",
+		"........#.......",
+		"................",
+		"................",
+	],
+
+	# Una porta con la freccia che esce: si chiude qui.
+	&"exit": [
+		"................",
+		"..#####.........",
+		"..#---#.........",
+		"..#---#.........",
+		"..#---#...##....",
+		"..#---#....##...",
+		"..#---#.....####",
+		"..#---#.....####",
+		"..#---#....##...",
+		"..#---#...##....",
+		"..#---#.........",
+		"..#---#.........",
+		"..#####.........",
+		"................",
+		"................",
+		"................",
+	],
+
+	# Un triangolo: riprendi.
+	&"play": [
+		"................",
+		"................",
+		"..######........",
+		"..#----##.......",
+		"..#------##.....",
+		"..#--------##...",
+		"..#----------##.",
+		"..#-----------##",
+		"..#-----------##",
+		"..#----------##.",
+		"..#--------##...",
+		"..#------##.....",
+		"..#----##.......",
+		"..######........",
+		"................",
+		"................",
+	],
+
+	# Una croce: si ricomincia.
+	&"plus": [
+		"................",
+		"......####......",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		"..############..",
+		"..#----------#..",
+		"..#----------#..",
+		"..#----------#..",
+		"..############..",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		"......#--#......",
+		"................",
+		"................",
+	],
+}
+
+## Quanti pixel e' largo e alto un emblema.
+const EMBLEM_SIZE: int = 16
+
+## Quanta parte del riquadro occupa l'emblema, da 0 a 1.
+##
+## Lascia un margine: un simbolo che tocca i bordi del riquadro sembra
+## disegnato male, non "grande".
+const EMBLEM_FILL: float = 0.74
+
+#endregion
+
+
 ## Disegna una carta.
 ##
 ## Restituisce un [Dictionary] con:
@@ -53,7 +249,10 @@ const BAYER4: Array[int] = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5
 ## [param style] (facoltativo, di solito [code]Settings.card_style()[/code]):
 ## [code]paper[/code] e [code]ink[/code] sono i colori della carta e
 ## dell'inchiostro, [code]wear[/code] l'usura da 0 (nuova) a 1 (a pezzi).
-static func build(card_size: Vector2, accent: Color, seed: int, enabled: bool, style: Dictionary = {}) -> Dictionary:
+##
+## [param emblem] (facoltativo): il nome di un simbolo di [constant EMBLEMS]
+## da disegnare dentro il riquadro. Vuoto = nessun simbolo.
+static func build(card_size: Vector2, accent: Color, seed: int, enabled: bool, style: Dictionary = {}, emblem: StringName = &"") -> Dictionary:
 	_set_palette(style)
 	var w: int = maxi(int(card_size.x) / PX, 40)
 	var h: int = maxi(int(card_size.y) / PX, 56)
@@ -80,6 +279,10 @@ static func build(card_size: Vector2, accent: Color, seed: int, enabled: bool, s
 
 	_paint_frame(img, dist, w, h, accent)
 	_paint_window(img, window, accent)
+	# L'emblema va [b]dopo il riquadro e prima della vecchiaia[/b]: cosi' le
+	# macchie, i puntini e le crepe gli passano sopra, e il simbolo sembra
+	# consumato come tutto il resto invece di essere appiccicato sopra.
+	var emblem_drawn: bool = _paint_emblem(img, window, emblem)
 	_paint_plaque(img, plaque, accent)
 	_paint_stains(img, mask, w, h, rng)
 	_paint_specks(img, mask, dist, w, h, rng)
@@ -95,6 +298,7 @@ static func build(card_size: Vector2, accent: Color, seed: int, enabled: bool, s
 		"shadow": ImageTexture.create_from_image(_build_shadow(mask, w, h)),
 		"window": window,
 		"plaque": plaque,
+		"emblem_drawn": emblem_drawn,
 	}
 
 
@@ -295,6 +499,82 @@ static func _paint_window(img: Image, r: Rect2i, accent: Color) -> void:
 			img.set_pixel(r.end.x + 1, y, _paper_light)
 		if y >= r.position.y:
 			img.set_pixel(r.position.x, y, low.darkened(0.45))
+
+
+## L'emblema della voce, dentro il riquadro dell'illustrazione.
+##
+## Ritorna true se ha disegnato qualcosa: la carta usa quel valore per sapere
+## se nascondere la lettera di ripiego.
+##
+## [b]Come e' fatto.[/b] La matrice e' 16 x 16 pixel [i]della carta[/i]. Qui si
+## calcola di quanto ingrandirla per riempire il riquadro lasciando un margine
+## ([constant EMBLEM_FILL]), si centra, e si dipinge pixel per pixel stando
+## dentro il riquadro.
+##
+## [b]Perche' c'e' l'ombra.[/b] Prima di disegnare il simbolo ne disegna la
+## sagoma spostata in basso a destra. Su un fondo scuro un'ombra netta di un
+## pixel basta a staccare il simbolo dal riquadro: e' lo stesso trucco della
+## cornice della carta.
+static func _paint_emblem(img: Image, r: Rect2i, emblem: StringName) -> bool:
+	if emblem == &"":
+		return false
+
+	if not EMBLEMS.has(emblem):
+		push_warning("MenuCardArt: emblema sconosciuto '%s'. Uso la lettera." % emblem)
+		return false
+
+	var rows: Array = EMBLEMS[emblem]
+	if rows.size() != EMBLEM_SIZE:
+		push_warning("MenuCardArt: l'emblema '%s' ha %d righe invece di %d." % [
+			emblem, rows.size(), EMBLEM_SIZE
+		])
+		return false
+
+	# Quanto ingrandire: il piu' grande che entra nel riquadro col margine.
+	var scale: int = maxi(1, int(minf(
+		float(r.size.x) * EMBLEM_FILL / float(EMBLEM_SIZE),
+		float(r.size.y) * EMBLEM_FILL / float(EMBLEM_SIZE)
+	)))
+	var drawn: Vector2i = Vector2i(EMBLEM_SIZE * scale, EMBLEM_SIZE * scale)
+
+	# Centrato nel riquadro. Arrotondato al pixel: un mezzo pixel sfocherebbe
+	# tutto e si perderebbe la pixel art.
+	var origin: Vector2i = Vector2i(
+		r.position.x + (r.size.x - drawn.x) / 2,
+		r.position.y + (r.size.y - drawn.y) / 2
+	)
+
+	# Prima l'ombra, poi il simbolo sopra.
+	for pass_index: int in 2:
+		var offset: int = scale if pass_index == 0 else 0
+
+		for row: int in EMBLEM_SIZE:
+			var line: String = rows[row]
+			for col: int in EMBLEM_SIZE:
+				var glyph: String = line[col]
+				if glyph == ".":
+					continue
+
+				var colour: Color = _ink
+				if pass_index == 1:
+					match glyph:
+						"-":
+							colour = _paper_light
+						"+":
+							colour = Color(1.0, 0.99, 0.93)
+
+				# Un pixel della matrice diventa un quadrato di `scale` pixel.
+				for dy: int in scale:
+					for dx: int in scale:
+						var px: int = origin.x + col * scale + dx + offset
+						var py: int = origin.y + row * scale + dy + offset
+						# Non usciamo dal riquadro: l'emblema non deve
+						# sbordare sulla cornice della carta.
+						if px < r.position.x or py < r.position.y or px >= r.end.x or py >= r.end.y:
+							continue
+						img.set_pixel(px, py, colour)
+
+	return true
 
 
 ## Il cartiglio del titolo: un nastro con le code a V.
