@@ -71,6 +71,22 @@ enum Phase {
 	FINISHED,
 }
 
+## La [b]regola dell'azzardo[/b] di una maschera: quale leva del rischio tocca.
+##
+## Una maschera non cambia le carte: cambia le regole intorno alle carte.
+## Ogni valore e' un hook piccolo in [BattleState] (vedi [MaskData]).
+enum MaskGambit {
+	NONE,         ## Nessuna regola (La Comparsa, o nessuna maschera).
+	TRAGEDY,      ## Quando vai fuori copione, il rivale ti ruba la scena x3.
+	COMEDY,       ## La prima volta che vai fuori copione in un turno, il pubblico perdona.
+	DECEIT,       ## Il primo scudo di ogni turno e' raddoppiato; il rivale non vede il tuo mana.
+	OMEN,         ## Vedi sempre la prossima carta prima di decidere.
+	MIRROR,       ## Le carte che l'avversario ha giocato ti costano meno il turno dopo.
+	FORGIVENESS,  ## Il pubblico ti perdona un bust, ma una volta sola per incontro.
+	GUARD,        ## La prima volta che lo scudo assorbe un colpo, non si consuma.
+	ALL,          ## Tutte le maschere insieme: ogni regola buona e' attiva.
+}
+
 ## Strategie usate dall'IA del simulatore.
 enum AiPolicy {
 	NEVER_STOP,      ## Continua finche' non fa bust (baseline sconsiderata).
@@ -119,6 +135,25 @@ const RARITY_NAMES: Dictionary = {
 	Rarity.LEGENDARY: "Leggendaria",
 	Rarity.UNIQUE: "Unica",
 }
+
+
+## Nomi leggibili delle regole dell'azzardo.
+const MASK_GAMBIT_NAMES: Dictionary = {
+	MaskGambit.NONE: "Nessuna",
+	MaskGambit.TRAGEDY: "Catarsi",
+	MaskGambit.COMEDY: "Improvvisazione",
+	MaskGambit.DECEIT: "Doppio gioco",
+	MaskGambit.OMEN: "Presagio",
+	MaskGambit.MIRROR: "Riflesso",
+	MaskGambit.FORGIVENESS: "Perdono",
+	MaskGambit.GUARD: "Guardia",
+	MaskGambit.ALL: "Tutte",
+}
+
+
+## Nome leggibile di una regola dell'azzardo.
+static func mask_gambit_name(gambit: MaskGambit) -> String:
+	return MASK_GAMBIT_NAMES.get(gambit, "Sconosciuta")
 
 
 ## Nome leggibile di un elemento.

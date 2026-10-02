@@ -71,6 +71,31 @@ var current_crit: float = 1.0
 ## Bonus di danno percentuale derivato dallo status Potenziato.
 var turn_damage_percent: float = 0.0
 
+# --- Maschera e tratti speciali (storia) ------------------------------------
+
+## La maschera indossata in questo incontro. Null = nessuna maschera.
+var mask: MaskData = null
+
+## Quanti "fuori copione" il pubblico e' ancora disposto a perdonare.
+## Lo riempie [BattleState] secondo la regola della maschera.
+var forgiveness_left: int = 0
+
+## Se true, la prossima volta che lo scudo assorbe un colpo non si consuma
+## (regola [b]Guardia[/b] del Dovere). Si spegne dopo il primo uso.
+var guard_active: bool = false
+
+## Gli id delle carte giocate nell'ultimo turno concluso. Servono allo
+## [b]Specchio[/b]: l'avversario le ritrova scontate nel suo mazzo.
+var last_played_ids: Array[StringName] = []
+
+## Tratto da boss: ogni turno toglie questo mana all'avversario (la gabbia
+## del Carceriere). 0 = niente.
+var cage_strength: int = 0
+
+## Tratto da boss: moltiplicatore sul danno inflitto, indipendente dalla
+## maschera (L'Ultimo "non ti fa mai male davvero").
+var damage_scale: float = 1.0
+
 # --- Statistiche per il simulatore -------------------------------------------
 
 var bust_count: int = 0
@@ -120,6 +145,10 @@ func start_battle(rng: BattleRNG) -> void:
 	health = max_health
 	mana = 0
 
+	forgiveness_left = 0
+	guard_active = false
+	last_played_ids = []
+
 	bust_count = 0
 	turns_taken = 0
 	total_damage_dealt = 0
@@ -164,8 +193,9 @@ func begin_turn(rng: BattleRNG) -> Dictionary:
 	var base_mana: int = balance.mana_for_level(level)
 	var bonus: int = rng.range_int(balance.mana_bonus_min, balance.mana_bonus_max)
 	var chill_penalty: int = status_report.get("chill_penalty", 0)
+	var mask_bonus: int = mask.mana_bonus if mask != null else 0
 
-	mana = maxi(base_mana + bonus - chill_penalty, 0)
+	mana = maxi(base_mana + bonus + mask_bonus - chill_penalty, 0)
 	mana_at_turn_start = mana
 
 	return {
@@ -173,6 +203,7 @@ func begin_turn(rng: BattleRNG) -> Dictionary:
 		"turn": turns_taken,
 		"mana_base": base_mana,
 		"mana_bonus": bonus,
+		"mask_bonus": mask_bonus,
 		"chill_penalty": chill_penalty,
 		"mana": mana,
 		"crit": crit_this_turn,
@@ -266,8 +297,13 @@ func take_damage(raw_amount: int) -> Dictionary:
 	var after_reduction: int = reduce_by_shield(raw_amount)
 
 	# 2. Lo scudo assorbe il danno rimanente e si consuma.
+	#    Con la Guardia attiva, la prima volta regge: assorbe senza consumarsi.
 	var absorbed: int = mini(shield, after_reduction)
-	shield -= absorbed
+	var guarded: bool = guard_active and absorbed > 0
+	if guarded:
+		guard_active = false
+	else:
+		shield -= absorbed
 
 	# 3. Il resto va sulla vita.
 	var to_health: int = after_reduction - absorbed
@@ -279,6 +315,7 @@ func take_damage(raw_amount: int) -> Dictionary:
 		"after_reduction": after_reduction,
 		"absorbed": absorbed,
 		"to_health": to_health,
+		"guarded": guarded,
 	}
 
 
@@ -391,6 +428,19 @@ func _tick_statuses() -> Dictionary:
 ## Il moltiplicatore definitivo del turno: critico da bust + Potenziato.
 func turn_damage_multiplier() -> float:
 	return (1.0 + turn_damage_percent / 100.0)
+
+
+## True se la maschera indossata attiva questa regola dell'azzardo.
+func has_gambit(which: CardTypes.MaskGambit) -> bool:
+	return mask != null and mask.has_gambit(which)
+
+
+## Il moltiplicatore di postura: tratto del combattente per quello della maschera.
+func posture_damage_scale() -> float:
+	var scale: float = damage_scale
+	if mask != null:
+		scale *= mask.damage_scale
+	return scale
 
 
 ## Un riassunto compatto dello stato, per i log.

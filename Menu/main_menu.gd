@@ -28,13 +28,54 @@ signal action_selected(action_id: StringName)
 ## Emesso quando il giocatore sceglie di uscire e conferma.
 signal quit_requested()
 
+## La scena della storia: "Nuova Partita" comincia dal camerino. "Riprendi"
+## passa dal salvataggio ([SaveGame]), che riporta alla scena salvata.
+const STORY_SCENE := "res://Story/story.tscn"
+
+@export_group("Titolo")
+
+## L'immagine del titolo, mostrata in alto al centro del menu.
+##
+## Se la lasci vuota si usa [member title_path]. Se manca anche il file, il menu
+## ripiega sul testo di [member title]: cosi' non resta mai senza titolo.
+@export var title_image: Texture2D
+
+## Percorso dell'immagine del titolo, usato quando [member title_image] e' vuota.
+@export_file("*.png", "*.jpg", "*.jpeg", "*.webp") var title_path: String = "res://Menu/img/titleBgRemoved.png"
+
+## Altezza del titolo a schermo, in pixel. La larghezza segue le proporzioni
+## dell'immagine.
+##
+## Con l'immagine di default (677x369) il titolo non supera il 22% dell'altezza
+## dello schermo: su 1080p sono ~237px, che e' esattamente lo spazio libero sopra
+## alle carte. Alzarlo oltre non serve, si ferma li'.
+@export_range(40, 700, 2) var title_height: int = 300
+
+## Testo mostrato [b]solo[/b] se l'immagine del titolo manca.
+##
+## Il giocatore puo' sovrascriverlo dalle impostazioni (Tema -> Titolo del menu):
+## in quel caso vale il suo testo.
+@export var title: String = "FUORI COPIONE"
+
+@export_group("Audio")
+
+## La musica di sottofondo del menu. Parte all'avvio e gira all'infinito.
+##
+## Sta sul bus [b]Music[/b], quindi il volume della musica nelle impostazioni la
+## controlla insieme al resto della colonna sonora.
+@export_file("*.mp3", "*.ogg", "*.wav") var music_path: String = "res://Menu/Audio/menu_song.mp3"
+
+## Il suono di quando si scorre il mazzo o si preme qualcosa.
+## Sta sul bus [b]UI[/b], che ha il suo volume separato.
+@export_file("*.mp3", "*.ogg", "*.wav") var click_path: String = "res://Menu/Audio/menu_botton.mp3"
+
+## Volume della musica, in decibel. Piu' basso = piu' discreta.
+@export_range(-40.0, 6.0, 0.5) var music_volume_db: float = -9.0
+
+## Volume del suono dei click, in decibel.
+@export_range(-40.0, 6.0, 0.5) var click_volume_db: float = -5.0
+
 @export_group("Testi")
-
-## Il titolo grande. Se lo lasci vuoto usa il nome del progetto.
-@export var title: String = ""
-
-## La riga sotto il titolo.
-@export_multiline var subtitle: String = "Un card game a turni"
 
 ## La riga di aiuto in fondo. Vuota = quella di default.
 @export_multiline var hint: String = ""
@@ -120,17 +161,63 @@ signal quit_requested()
 ## ([MenuCardBackdrop]). E' solo ambiente: non serve al menu.
 @export var ambient_cards: bool = false
 
+@export_group("Sfondo")
+
+## L'immagine di fondo del menu: il sipario.
+##
+## Se la lasci vuota si usa [member background_path]. Se non c'e' nessuna delle
+## due, resta il solo colore di fondo: il menu funziona lo stesso.
+@export var background_image: Texture2D
+
+## Il percorso dell'immagine di fondo, usato quando [member background_image]
+## e' vuoto.
+##
+## [b]Se il menu dice che non la trova:[/b] apri l'editor di Godot una volta.
+## Le immagini appena aggiunte al progetto vengono importate da lui, e finche'
+## non lo fa il gioco non le vede.
+@export_file("*.png", "*.jpg", "*.jpeg", "*.webp") var background_path: String = "res://Menu/img/background.jpg"
+
+## Quanto scurire l'immagine, per far leggere i testi che ci stanno sopra.
+##
+## Non e' un velo uniforme: scurisce soprattutto l'alto e il basso (dove stanno
+## il titolo e le scritte) e lascia piu' libero il centro, dove si vedono le carte.
+@export_range(0.0, 1.0, 0.05) var background_dim: float = 0.32
+
+## Se true dietro al menu fluttuano le maschere ([MenuMaskBackdrop]).
+@export var floating_masks: bool = true
+
+## Quante maschere tenere in scena contemporaneamente.
+@export_range(1, 60, 1) var mask_count: int = 16
+
+## Altezza minima e massima di una maschera, in pixel. Le piu' grandi sono
+## quelle "piu' vicine", che si muovono anche di piu'.
+@export_range(40, 400, 2) var mask_height_min: int = 84
+@export_range(40, 500, 2) var mask_height_max: int = 210
+
+## Quanto sono visibili le maschere. Tienile discrete: sono sfondo.
+@export_range(0.0, 1.0, 0.01) var mask_opacity: float = 0.40
+
+## Velocita' di base delle maschere, in pixel al secondo.
+## Alzala per vederle muoversi di piu', abbassala per un fondo quasi fermo.
+@export_range(0.0, 120.0, 1.0) var mask_drift_speed: float = 13.0
+
 
 # --- Riferimenti UI ---
+var _background_image: TextureRect
+var _mask_backdrop: MenuMaskBackdrop
 var _ambient: MenuCardBackdrop
 var _card_layer: Control
+var _title_image: TextureRect
 var _title_label: Label
-var _subtitle_label: Label
 var _description_label: Label
 var _index_label: Label
 var _hint_label: Label
 var _footer_label: Label
 var _toast_label: Label
+
+# --- Audio ---
+var _music: AudioStreamPlayer
+var _click: AudioStreamPlayer
 
 # --- Stato ---
 var _cards: Array[MenuEntryCard] = []
@@ -169,6 +256,10 @@ func _ready() -> void:
 	_read_settings()
 	Settings.theme_changed.connect(_on_theme_changed)
 
+	# La musica parte subito, prima di costruire la UI: il menu non deve mai
+	# comparire in silenzio.
+	_setup_audio()
+
 	_build_ui()
 	_build_cards()
 	_layout_ui()
@@ -199,6 +290,34 @@ func _build_ui() -> void:
 	base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(base)
 
+	# --- 1b. Il sipario: l'immagine di fondo ---
+	# Sta sopra al colore pieno (che resta come ripiego se l'immagine manca) e
+	# sotto a tutto il resto. KEEP_ASPECT_COVERED: riempie lo schermo senza
+	# deformare l'immagine, tagliando quello che avanza ai lati.
+	_background_image = TextureRect.new()
+	_background_image.texture = _resolve_background()
+	_background_image.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_background_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_background_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_background_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_background_image.visible = _background_image.texture != null
+	add_child(_background_image)
+
+	# --- 1c. Le maschere che fluttuano ---
+	# Sopra al sipario (se no' non si vedrebbero) e sotto a tutto il menu.
+	if floating_masks:
+		_mask_backdrop = MenuMaskBackdrop.new()
+		_mask_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_mask_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# I valori vanno dati PRIMA di aggiungerlo all'albero: appena entra
+		# parte _ready(), che ritaglia il foglio e mette le maschere in scena.
+		_mask_backdrop.mask_count = mask_count
+		_mask_backdrop.mask_height_min = mask_height_min
+		_mask_backdrop.mask_height_max = mask_height_max
+		_mask_backdrop.opacity = mask_opacity
+		_mask_backdrop.drift_speed = mask_drift_speed
+		add_child(_mask_backdrop)
+
 	var sheen: TextureRect = TextureRect.new()
 	sheen.texture = _make_background_gradient()
 	sheen.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -223,18 +342,8 @@ func _build_ui() -> void:
 	_card_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_card_layer)
 
-	# --- 4. Titolo, sottotitolo, descrizione, aiuto ---
-	_title_label = _make_centered_label(title_size, _text_color)
-	_title_label.text = _resolve_title()
-	_title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.65))
-	_title_label.add_theme_constant_override("shadow_offset_x", 3)
-	_title_label.add_theme_constant_override("shadow_offset_y", 3)
-	add_child(_title_label)
-
-	_subtitle_label = _make_centered_label(32, _text_color.darkened(0.2))
-	_subtitle_label.text = subtitle
-	_subtitle_label.visible = not subtitle.strip_edges().is_empty()
-	add_child(_subtitle_label)
+	# --- 4. Titolo, descrizione, aiuto ---
+	_build_title()
 
 	_description_label = _make_centered_label(30, _text_color.darkened(0.12))
 	_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -303,11 +412,8 @@ func _layout_ui() -> void:
 	var height: float = size.y
 	var center_y: float = height * carousel_center_ratio
 
-	_title_label.offset_top = height * 0.055
-	_title_label.offset_bottom = _title_label.offset_top + float(Settings.font_size(title_size)) * 1.35
-
-	_subtitle_label.offset_top = _title_label.offset_bottom + 2.0
-	_subtitle_label.offset_bottom = _subtitle_label.offset_top + 48.0
+	# Il titolo: l'immagine se c'e', altrimenti il testo. Vedi [method _layout_title].
+	_layout_title()
 
 	# La descrizione sta sotto il mazzo di carte. Se sono aperti i pulsanti
 	# di una voce, loro prendono il suo posto e la descrizione scende.
@@ -326,15 +432,76 @@ func _layout_ui() -> void:
 	_hint_label.offset_bottom = height - 64.0
 
 
-## Un gradiente verticale appena percettibile, per dare profondita' al fondo.
+## Posiziona il titolo, immagine o testo, e ritorna dove finisce.
+##
+## [b]L'immagine si scala sulla sua altezza,[/b] non stirata: la larghezza segue
+## le proporzioni.
+##
+## Tre fermi, tutti calcolati da valori che sono nell'inspector:
+## [br]- [b]Larghezza:[/b] mai oltre il 72% dello schermo, cosi' non tocca i bordi.
+## [br]- [b]Altezza:[/b] mai oltre lo spazio libero sopra le carte. Non e' una
+##   percentuale fissa ma nasce da [member carousel_center_ratio] e
+##   [member card_size], quindi se sposti o ingrandisci il mazzo il titolo si
+##   stringe da solo invece di finirci sopra.
+## [br]- [b]Altezza minima:[/b] sotto il 6% dello schermo il titolo non scende,
+##   altrimenti su finestre basse diventerebbe illeggibile.
+func _layout_title() -> float:
+	var top: float = size.y * 0.045
+	# Dove comincia il mazzo: e' il vero limite inferiore del titolo.
+	var cards_top: float = size.y * carousel_center_ratio - card_size.y * 0.5
+	var free_height: float = maxf(cards_top - top - 16.0, size.y * 0.06)
+
+	if _title_image.visible and _title_image.texture != null:
+		var texture_size: Vector2 = _title_image.texture.get_size()
+		var ratio: float = texture_size.x / maxf(texture_size.y, 1.0)
+
+		var width: float = float(title_height) * ratio
+		width = minf(width, size.x * 0.72)
+		var height: float = width / maxf(ratio, 0.001)
+		height = minf(height, free_height)
+		width = height * ratio
+
+		# Ancore a TOP_LEFT: qui gli offset sono coordinate assolute da (0,0),
+		# quindi x1/x2 si calcolano diretti attorno al centro dello schermo.
+		_title_image.offset_left = (size.x - width) * 0.5
+		_title_image.offset_right = (size.x + width) * 0.5
+		_title_image.offset_top = top
+		_title_image.offset_bottom = top + height
+		return _title_image.offset_bottom
+
+	_title_label.offset_top = top
+	_title_label.offset_bottom = top + float(Settings.font_size(title_size)) * 1.35
+	return _title_label.offset_bottom
+
+
+## Il velo sopra al fondo.
+##
+## [b]Con l'immagine:[/b] e' una vignetta trasparente. Scurisce l'alto e il basso
+## — dove stanno il titolo e le righe di testo — e lascia piu' libero il centro,
+## dove stanno le carte. Serve a far leggere i testi senza nascondere il sipario.
+##
+## [b]Senza immagine:[/b] e' il gradiente pieno, che da' profondita' al colore
+## di fondo. Qui deve essere opaco, altrimenti sotto non ci sarebbe niente.
 func _make_background_gradient() -> GradientTexture2D:
+	var colors: PackedColorArray
+
+	if _has_background_image():
+		var dim: float = clampf(background_dim, 0.0, 1.0)
+		colors = PackedColorArray([
+			Color(0.0, 0.0, 0.0, clampf(dim * 1.1 + 0.20, 0.0, 1.0)),
+			Color(0.0, 0.0, 0.0, dim * 0.45),
+			Color(0.0, 0.0, 0.0, clampf(dim + 0.22, 0.0, 1.0)),
+		])
+	else:
+		colors = PackedColorArray([
+			background_color.lightened(0.10),
+			background_color,
+			background_color.darkened(0.35),
+		])
+
 	var gradient: Gradient = Gradient.new()
 	gradient.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
-	gradient.colors = PackedColorArray([
-		background_color.lightened(0.10),
-		background_color,
-		background_color.darkened(0.35),
-	])
+	gradient.colors = colors
 
 	var texture: GradientTexture2D = GradientTexture2D.new()
 	texture.gradient = gradient
@@ -343,6 +510,75 @@ func _make_background_gradient() -> GradientTexture2D:
 	texture.fill_from = Vector2(0.5, 0.0)
 	texture.fill_to = Vector2(0.5, 1.0)
 	return texture
+
+
+## L'immagine di fondo da mostrare, oppure null.
+##
+## Prima l'immagine assegnata a mano, poi quella al percorso. Se il file c'e'
+## ma Godot non l'ha ancora importato (succede alle immagini appena aggiunte,
+## finche' l'editor non le vede), lo segnala invece di restare muto.
+func _resolve_background() -> Texture2D:
+	if background_image != null:
+		return background_image
+
+	if background_path.strip_edges().is_empty():
+		return null
+
+	if not ResourceLoader.exists(background_path):
+		push_warning("Menu: immagine di fondo non trovata: %s\nApri l'editor di Godot una volta: le immagini nuove le importa lui." % background_path)
+		return null
+
+	return load(background_path) as Texture2D
+
+
+## True se c'e' un'immagine di fondo da mostrare.
+func _has_background_image() -> bool:
+	return _background_image != null and _background_image.texture != null
+
+
+## Costruisce il titolo: l'immagine se c'e', il testo come ripiego.
+##
+## [b]Uno dei due resta sempre visibile,[/b] cosi' il menu non rimane mai senza
+## titolo: se l'immagine manca (o Godot non l'ha ancora importata) compare il
+## testo, e in Output trovi il motivo.
+func _build_title() -> void:
+	var texture: Texture2D = _resolve_title_image()
+
+	_title_image = TextureRect.new()
+	_title_image.texture = texture
+	_title_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_title_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_title_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Angolo in alto a sinistra, non TOP_WIDE: con TOP_WIDE l'ancora destra sta
+	# sul bordo destro dello schermo, quindi offset_right si *somma* a quel bordo
+	# e il titolo finisce fuori schermo. Con TOP_LEFT gli offset sono assoluti e
+	# [method _layout_title] puo' centrare l'immagine calcolando da sola x1/x2.
+	_title_image.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_title_image.visible = texture != null
+	add_child(_title_image)
+
+	_title_label = _make_centered_label(title_size, _text_color)
+	_title_label.text = _resolve_title()
+	_title_label.visible = texture == null
+	_title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.65))
+	_title_label.add_theme_constant_override("shadow_offset_x", 3)
+	_title_label.add_theme_constant_override("shadow_offset_y", 3)
+	add_child(_title_label)
+
+
+## L'immagine del titolo, oppure null se non c'e' (e allora si usa il testo).
+func _resolve_title_image() -> Texture2D:
+	if title_image != null:
+		return title_image
+
+	if title_path.strip_edges().is_empty():
+		return null
+
+	if not ResourceLoader.exists(title_path):
+		push_warning("Menu: immagine del titolo non trovata: %s\nApri l'editor di Godot una volta: importa lui le immagini nuove. Nel frattempo uso il testo." % title_path)
+		return null
+
+	return load(title_path) as Texture2D
 
 
 ## Costruisce il pannello di conferma (nascosto all'inizio).
@@ -429,11 +665,11 @@ static func build_default_actions() -> Array[MenuAction]:
 	# Storia non porta a una schermata da sola: apre tre pulsanti sotto la carta.
 	var story: MenuAction = MenuAction.of(
 		&"story", "Storia",
-		"Inizia l'avventura e attraversa i dungeon."
+		"Fuori Copione: ti svegli senza volto in un teatro che e' tutto il mondo. Esci, se ci riesci."
 	)
 	story.sub_actions = [
 		MenuAction.of(&"continue", "Riprendi", "Continua dall'ultimo salvataggio."),
-		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia l'avventura da capo.", "res://Scene/Main.tscn"),
+		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia dal camerino. Il numero sul muro sale di uno.", STORY_SCENE),
 		MenuAction.of(&"story_options", "Altre Opzioni", "Difficolta', capitoli e altre impostazioni della storia."),
 	]
 	list.append(story)
@@ -478,6 +714,7 @@ func _build_cards() -> void:
 
 	_action_list = _resolve_actions()
 	_selected = clampi(_selected, 0, maxi(_action_list.size() - 1, 0))
+	_refresh_continue_entry()
 
 	for i: int in range(_action_list.size()):
 		var action: MenuAction = _action_list[i]
@@ -506,6 +743,32 @@ func _build_cards() -> void:
 		_cards.append(card)
 
 	_update_selection_labels()
+
+
+## Aggiorna la voce "Riprendi" con quello che c'e' davvero sul disco.
+##
+## La descrizione della voce e' scritta a mano in [method build_default_actions],
+## ma li' non si puo' sapere se un salvataggio esiste: si scopre solo adesso.
+## Se non c'e' niente da riprendere la voce resta, ma lo dice.
+func _refresh_continue_entry() -> void:
+	var entry: MenuAction = null
+	for action: MenuAction in _action_list:
+		if action.id == &"continue":
+			entry = action
+			break
+
+	if entry == null:
+		return
+
+	if not SaveGame.has_save():
+		entry.description = "Nessun salvataggio da riprendere, per ora."
+		return
+
+	var description: String = SaveGame.describe()
+	if description.is_empty():
+		entry.description = "Continua dall'ultimo salvataggio."
+	else:
+		entry.description = "Ultimo salvataggio: %s." % description
 
 
 ## Le voci da mostrare: quelle scelte nell'inspector, o quelle di default.
@@ -610,6 +873,7 @@ func _on_card_released(card: MenuEntryCard, offset: Vector2) -> void:
 func _activate_selected() -> void:
 	if _busy or _action_list.is_empty():
 		return
+	_play_click()
 	_activate_action(_action_list[_selected])
 
 
@@ -673,6 +937,15 @@ func _execute_action(action: MenuAction) -> void:
 		Settings.open_menu()
 		return
 
+	# 2c. Riprendi: ricarica l'ultimo salvataggio, se c'e'.
+	if action.id == &"continue":
+		if not SaveGame.has_save():
+			_show_toast("Non c'e' ancora nessun salvataggio da riprendere.", 2.5)
+			_refuse_current()
+			return
+		_play_card_out(func() -> void: SaveGame.load_into(get_tree()))
+		return
+
 	# 3. Tutto il resto: lo segnaliamo a chi ascolta, e intanto spieghiamo.
 	action_selected.emit(action.id)
 
@@ -731,6 +1004,7 @@ func _ask_confirmation(action: MenuAction) -> void:
 
 
 func _on_confirm_yes() -> void:
+	_play_click()
 	var action: MenuAction = _pending_action
 	_pending_action = null
 	_confirm_layer.visible = false
@@ -740,6 +1014,7 @@ func _on_confirm_yes() -> void:
 
 
 func _on_confirm_no() -> void:
+	_play_click()
 	_pending_action = null
 	_confirm_layer.visible = false
 
@@ -878,6 +1153,8 @@ func _on_sub_pressed(button: Button, sub: MenuAction) -> void:
 	if _busy:
 		return
 
+	_play_click()
+
 	if sub.has_scene() or sub.has_sub_actions() or sub.needs_confirmation or sub.id == &"quit":
 		_close_submenu()
 		_activate_action(sub)
@@ -918,6 +1195,8 @@ func _focus_sub_button(step: int) -> void:
 			buttons.append(button)
 	if buttons.is_empty():
 		return
+
+	_play_click(randf_range(0.96, 1.06))
 
 	var current: int = -1
 	for i: int in buttons.size():
@@ -962,6 +1241,8 @@ func _move_selection(direction: int, out_side: float = -1.0) -> void:
 	# La carta che "vola": quella che lascia la cima, o quella che ci arriva.
 	var flying: MenuEntryCard = _cards[_selected] if direction > 0 else _cards[next]
 	_selected = next
+	# Il tono varia appena: scorrere tante carte non deve suonare meccanico.
+	_play_click(randf_range(0.94, 1.08))
 	_layout_cards(true, false, flying, direction, out_side)
 
 
@@ -1202,13 +1483,13 @@ func _deck_position() -> Vector2:
 ## La dissolvenza in ingresso dei testi.
 func _animate_in() -> void:
 	_title_label.modulate.a = 0.0
-	_subtitle_label.modulate.a = 0.0
+	_title_image.modulate.a = 0.0
 	_description_label.modulate.a = 0.0
 
 	var tween: Tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(_title_label, "modulate:a", 1.0, 0.5)
-	tween.tween_property(_subtitle_label, "modulate:a", 1.0, 0.5).set_delay(0.1)
+	tween.tween_property(_title_image, "modulate:a", 1.0, 0.55)
 	tween.tween_property(_description_label, "modulate:a", 1.0, 0.6).set_delay(0.45)
 
 
@@ -1398,7 +1679,6 @@ func _read_settings() -> void:
 
 	var custom_title: String = str(Settings.get_value("theme", "menu_title", "")).strip_edges()
 	title = custom_title if not custom_title.is_empty() else str(_inspector.get("title", ""))
-	subtitle = str(Settings.get_value("theme", "menu_subtitle", subtitle))
 
 	ambient_cards = bool(Settings.get_value("theme", "ambient_cards", ambient_cards))
 	stack_jitter = float(Settings.get_value("theme", "stack_jitter", stack_jitter))
@@ -1428,6 +1708,9 @@ func _on_theme_changed() -> void:
 
 	_build_ui()
 	_build_cards()
+	# Anche i lettori audio erano figli di questo nodo: vanno rifatti, o dopo
+	# un cambio di tema il menu resta muto.
+	_setup_audio()
 	_selected = clampi(keep, 0, maxi(_cards.size() - 1, 0))
 	_layout_ui()
 	_layout_cards(false)
@@ -1438,6 +1721,85 @@ func _on_resized() -> void:
 	_layout_ui()
 	if _intro_done:
 		_layout_cards(false)
+
+
+#endregion
+
+#region Audio
+
+
+## Crea (o ricrea) i lettori audio del menu.
+##
+## [b]Va richiamata dopo ogni ricostruzione della UI:[/b] anche i lettori sono
+## figli di questo nodo, quindi un cambio di tema li cancellerebbe insieme al
+## resto. Richiamandola si riparte puliti, senza musica doppia.
+func _setup_audio() -> void:
+	for player: Node in [_music, _click]:
+		if is_instance_valid(player):
+			player.queue_free()
+	_music = null
+	_click = null
+
+	var music: AudioStream = _load_audio(music_path)
+	if music != null:
+		# Il loop e' una proprieta' della risorsa, non del lettore: senza questo
+		# la musica del menu si fermerebbe alla fine del brano.
+		_enable_loop(music)
+		_music = AudioStreamPlayer.new()
+		_music.name = "MenuMusic"
+		_music.bus = &"Music"
+		_music.volume_db = music_volume_db
+		_music.stream = music
+		add_child(_music)
+		_music.play()
+
+	var click: AudioStream = _load_audio(click_path)
+	if click != null:
+		_click = AudioStreamPlayer.new()
+		_click.name = "MenuClick"
+		_click.bus = &"UI"
+		_click.volume_db = click_volume_db
+		_click.stream = click
+		add_child(_click)
+
+
+## Carica un file audio, con un avviso chiaro se non c'e'.
+##
+## [b]Nota:[/b] i file appena aggiunti al progetto vanno importati da Godot una
+## volta. Finche' l'editor non li vede, [method ResourceLoader.exists] dice di no.
+func _load_audio(path: String) -> AudioStream:
+	if path.strip_edges().is_empty():
+		return null
+
+	if not ResourceLoader.exists(path):
+		push_warning("Menu: audio non trovato: %s\nApri l'editor di Godot una volta: importa lui i file nuovi." % path)
+		return null
+
+	return load(path) as AudioStream
+
+
+## Fa ripetere un brano all'infinito.
+##
+## Il loop e' una proprieta' [b]della risorsa[/b], non del lettore, e il campo ha
+## un nome diverso per ogni formato: da qui il controllo sul tipo.
+static func _enable_loop(stream: AudioStream) -> void:
+	if stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
+	elif stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+	elif stream is AudioStreamWAV:
+		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+
+
+## Il "toc" dei menu: scorrendo il mazzo e premendo qualsiasi cosa.
+##
+## [param pitch] alza o abbassa il tono: lo scorrimento lo varia appena, cosi'
+## passare su tante carte non diventa un suono identico ripetuto.
+func _play_click(pitch: float = 1.0) -> void:
+	if _click == null or _click.stream == null:
+		return
+	_click.pitch_scale = pitch
+	_click.play()
 
 
 #endregion

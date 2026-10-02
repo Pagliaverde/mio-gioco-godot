@@ -1,7 +1,13 @@
-# 🌱 Mio Gioco Godot
+# 🎭 Fuori Copione
 
-Un gioco 2D top-down in pixel art, ambientato in un piccolo villaggio di campagna, sviluppato con **Godot 4**.
-Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, una mappa costruita a tile e un primo NPC (uno slime) con cui dialogare.
+Un card game a turni con **pesca casuale**, sviluppato con **Godot 4**: non hai una mano,
+peschi una carta alla volta e decidi se rischiare ancora o fermarti. La storia comincia
+in una stanza senza volto e attraversa un teatro che è tutto il mondo: cinque boss,
+nove maschere, tre finali. Vedi [`Story/README.md`](Story/README.md) e
+[`Docs/TRAMA_E_MASCHERE.md`](Docs/TRAMA_E_MASCHERE.md).
+
+Nel repository resta anche il prototipo 2D top-down (`Scene/Main.tscn`): un protagonista
+che si muove e attacca, una mappa a tile e un NPC slime con cui dialogare.
 
 ![Godot](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)
 ![GDScript](https://img.shields.io/badge/linguaggio-GDScript-355570)
@@ -24,6 +30,11 @@ Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, un
 
 ## ✨ Funzionalità
 
+- **La storia** (`Story/`): dal camerino al fondo della platea, con i Bauli di Scena, la platea dei manichini, cinque boss e tre finali. Salvataggio automatico, **Riprendi** dal menu
+- **Le maschere** (`Cards/mask/`): affinità, regola dell'azzardo e postura; nove maschere, quattro nei bauli e cinque vinte dai boss
+- **Il motore delle carte** (`Cards/`): mazzi, pubblico/mana, pesca, fuori copione/bust, elementi, status, sinergie, simulatore di bilanciamento
+- **Le illustrazioni delle carte**, dipinte in pixel art in codice (`Cards/ui/card_art_painter.gd`) ed esportate in `Cards/art/`
+- **Menu principale** a mazzo di carte e **impostazioni** complete (`Menu/`, `Settings/`)
 - **Movimento in 8 direzioni** del protagonista, con animazioni `idle` / `run` per ogni direzione
 - **Attacco con la spada**, con animazione dedicata ed effetto sonoro
 - **Suono dei passi** che parte e si ferma in base al movimento
@@ -36,10 +47,18 @@ Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, un
 
 | Azione               | Tastiera                  |
 | -------------------- | ------------------------- |
-| Muoversi             | `W` `A` `S` `D` / frecce  |
+| Storia: avanti       | `Invio` / click           |
+| Storia: torna al menu| `Esc`                     |
+| Scena: pesca         | `Spazio`                  |
+| Scena: fermati       | `S`                       |
+| Muoversi (prototipo) | `W` `A` `S` `D` / frecce  |
 | Attaccare            | `Spazio`                  |
 | Avviare il dialogo   | `Invio`                   |
 | Avanzare nel dialogo | `Invio` / click           |
+| **Pausa**            | `Esc`                     |
+
+Premendo `Esc` durante il gioco il mondo si ferma e compare il menu di pausa
+(Riprendi, Salva, Opzioni, Torna al menu, Esci). Vedi [`Pause/README.md`](Pause/README.md).
 
 > ⚠️ Al momento il dialogo con lo slime è legato all'azione `ui_accept`, che in Godot include anche `Spazio`: premendo Spazio si attacca **e** si apre il dialogo. Vedi la [Roadmap](#-roadmap).
 
@@ -57,7 +76,7 @@ Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, un
    ```
 2. Apri Godot e, dal **Project Manager**, clicca su **Importa** e seleziona il file `project.godot` nella cartella clonata.
 3. Al primo avvio Godot reimporterà tutti gli asset (può richiedere qualche secondo).
-4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è `Scene/Main.tscn`.
+4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è il menu (`Menu/main_menu.tscn`): **Storia → Nuova Partita** comincia dal camerino, **Riprendi** ricarica l'ultimo salvataggio.
 
 > Il plugin **Dialogue Manager** è già incluso nella cartella `addons/` e abilitato in `project.godot`: non serve installarlo a parte.
 
@@ -66,10 +85,21 @@ Il progetto è in fase iniziale: c'è un protagonista che si muove e attacca, un
 ```
 mio-gioco-godot/
 ├── project.godot              # Configurazione del progetto (input, autoload, plugin)
+├── Story/                     # La storia: regista, dati, battaglia, maschere disegnate, platea
+├── Cards/                     # Il motore delle carte, le maschere, le illustrazioni, il simulatore
+├── Menu/                      # Menu principale a mazzo di carte
+├── Settings/                  # Impostazioni e tema dell'interfaccia
+├── Docs/                      # Documento di design: trama e maschere
 ├── Scene/
-│   ├── Main.tscn              # Scena principale: mappa, camera, player e NPC
+│   ├── Main.tscn              # Campo da gioco: mappa, camera, player e NPC
 │   ├── Player.tscn            # Protagonista (sprite animati + suoni)
 │   └── SlimeNpc.tscn          # NPC slime
+├── Menu/                      # Menu principale (mazzo di carte, titolo, musiche)
+├── Pause/                     # Menu di pausa (Esc): vedi Pause/README.md
+├── Save/                      # Salvataggio della partita: vedi Save/README.md
+├── Settings/                  # Impostazioni, tema globale e accessibilità
+├── Cards/                     # Carte, mazzi, bilanciamento e tavolo di battaglia
+├── Docs/                      # Documenti di design (trama, maschere)
 ├── Asset/
 │   ├── Script/
 │   │   ├── player.gd          # Movimento, animazioni e attacco del player
@@ -85,7 +115,8 @@ mio-gioco-godot/
 │   ├── tileset/               # Risorsa TileSet di Godot
 │   └── audio/                 # Effetti sonori (passi, spada)
 └── addons/
-    └── dialogue_manager/      # Plugin Dialogue Manager (v4.1.0)
+    ├── dialogue_manager/      # Plugin Dialogue Manager (v4.1.0)
+    └── card_editor/           # Editor delle carte dentro Godot
 ```
 
 ## 💬 Dialoghi
@@ -116,12 +147,21 @@ La sintassi completa è documentata nella [guida ufficiale di Dialogue Manager](
 - [x] Attacco con la spada ed effetti sonori
 - [x] Prima mappa a tile
 - [x] Primo NPC con dialogo
+- [x] Motore delle carte con pesca casuale e simulatore
+- [x] Menu principale e impostazioni
+- [x] La storia: camerino, zone, bauli, cinque boss, finali, salvataggio
+- [x] Le maschere (affinità, regola dell'azzardo, postura)
+- [x] Illustrazioni delle carte in pixel art
+- [ ] Il Segno: l'abilità passiva firmata di ogni maschera (sistema F2)
+- [ ] Bauli segreti nelle zone già battute
+- [ ] Negozio e pacchetti
 - [ ] Avviare il dialogo solo quando il player è vicino all'NPC (area di interazione)
 - [ ] Tasto di interazione dedicato (es. `E`), separato dall'attacco
 - [ ] Hitbox della spada e interazione con i nemici
 - [ ] Animali (galline, mucche) già presenti negli asset
 - [ ] Inventario e oggetti raccoglibili
-- [ ] Menu principale e salvataggio
+- [x] Menu principale
+- [x] Menu di pausa (`Esc`) e salvataggio della partita
 
 ## 🤝 Contribuire (workflow Git)
 

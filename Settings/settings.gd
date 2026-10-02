@@ -169,7 +169,6 @@ func _build_defaults() -> Dictionary:
 			"font": "jersey",
 			"animation_speed": 1.0,
 			"menu_title": "",
-			"menu_subtitle": "Un card game a turni",
 			"ambient_cards": false,
 			"stack_jitter": 3.0,
 			"stack_depth": 5,
@@ -770,7 +769,9 @@ func open_menu() -> Control:
 		return _menu_layer.get_child(0) as Control
 
 	_menu_layer = CanvasLayer.new()
-	_menu_layer.layer = 100
+	# Sopra a tutto tranne i filtri colore (128): le impostazioni si aprono anche
+	# dal menu di pausa (110) e dal balloon dei dialoghi (100), e devono coprirli.
+	_menu_layer.layer = 120
 	_menu_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(_menu_layer)
 

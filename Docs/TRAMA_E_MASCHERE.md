@@ -501,17 +501,21 @@ Buona notizia: quasi tutto riusa quello che esiste.
 | Pezzo | Stato | Lavoro |
 |---|---|---|
 | `SynergyRule` | ✅ esiste | Una maschera contiene un array di regole. **Zero codice nuovo** |
-| `BattleBalance` | ✅ esiste | La postura è un preset di balance. Riuso diretto |
+| `BattleBalance` | ✅ esiste | La postura è `damage_scale` + `mana_bonus` su `MaskData` (più semplice di un balance per giocatore) |
 | Rarità maschere | ✅ esiste | `RarityProfile` vale anche per loro |
-| Boss II (Il Sostituto) | ✅ quasi gratis | Usa il `DeckData` del giocatore come mazzo nemico |
-| Boss I (La Comparsa) | ✅ quasi gratis | È il mazzo **Fortezza** che hai già |
-| **Vedere la prossima carta** (Presagio) | 🟡 quasi gratis | `draw_pile.back()` è già leggibile |
-| **Bust perdonato / crit ×3** | 🟡 piccolo | Il bust è gestito in **un punto solo** (`battle_state.gd:210`): un hook lo copre |
-| **Scudo raddoppiato / non consumato** | 🟡 piccolo | Un moltiplicatore nel calcolo dello scudo |
-| `MaskData` + `MaskLibrary` | ❌ da fare | Sul modello di `CardData` + `CardLibrary` |
+| Boss II (Il Sostituto) | ✅ fatto | Usa il `DeckData` del giocatore **e la sua maschera** (`Story/story_data.gd`) |
+| Boss I (La Comparsa) | ✅ fatto | È il mazzo **Fortezza** |
+| **Vedere la prossima carta** (Presagio) | ✅ fatto | `BattleState.peek_next_card()` |
+| **Bust perdonato / crit ×3** | ✅ fatto | Hook in `draw_and_play()`: `forgiveness_left`, segnale `forgiven`, Catarsi ×3 |
+| **Scudo raddoppiato / non consumato** | ✅ fatto | `_largest_shield_played()` (Inganno) e `guard_active` in `take_damage()` (Dovere) |
+| Riflesso (Specchio) | ✅ fatto | `_apply_turn_gambits()`: sconto sulle carte in `last_played_ids` del rivale |
+| La gabbia (Carceriere) | ✅ fatto | `BattlePlayer.cage_strength`, applicato in `_begin_turn()` |
+| `MaskData` + `MaskLibrary` | ✅ fatto | `Cards/mask/` |
+| La storia (zone, bauli, boss, finali) | ✅ fatto | `Story/` — vedi `Story/README.md` |
+| Il manichino che si sposta | ✅ fatto | `TheatreView.visit()`: un posto diverso a ogni visita |
+| I manichini che si girano | ✅ fatto | `TheatreView.turn_all()`, nel finale |
 | Dock maschere (nell'editor) | ❌ da fare | Sul modello del dock Carte |
 | **Il Segno** (abilità passiva) | ❌ manca | Richiede il sistema F2, già previsto |
-| I manichini che si girano | ❌ da fare | Non è codice: è una scena |
 
 **Il messaggio da portarsi via:** le Maschere sono **uno strato sopra il motore**,
 non un rifacimento. Le regole dell'azzardo sono quattro hook piccoli in un file

@@ -26,6 +26,10 @@ signal card_played(instance: CardInstance)
 ## Emesso quando si pesca una carta troppo cara.
 signal busted(instance: CardInstance)
 
+## Emesso quando una carta troppo cara viene perdonata dalla maschera:
+## la carta torna in fondo al mazzo e il turno continua.
+signal forgiven(instance: CardInstance)
+
 ## Emesso a fine turno con il dettaglio completo della risoluzione.
 signal turn_resolved(report: Dictionary)
 
@@ -106,6 +110,13 @@ func setup(
 	phase = CardTypes.Phase.NOT_STARTED
 
 
+## Assegna le maschere ai due combattenti. Chiamala dopo [method setup] e
+## prima di [method start]. Null = nessuna maschera.
+func set_masks(mask_a: MaskData, mask_b: MaskData) -> void:
+	player_a.mask = mask_a
+	player_b.mask = mask_b
+
+
 ## Fa partire la battaglia (mescola e comincia il primo turno).
 func start() -> void:
 	player_a.start_battle(rng)
@@ -113,6 +124,18 @@ func start() -> void:
 
 	_add_log("=== BATTAGLIA: %s vs %s (seme %d) ===" % [player_a.display_name, player_b.display_name, rng.seed_value])
 	_add_log("Bilanciamento: %s" % balance.describe())
+
+	# Le regole dell'azzardo che valgono per tutto l'incontro.
+	for player: BattlePlayer in [player_a, player_b]:
+		if player.mask != null:
+			_add_log("%s indossa %s (%s)." % [
+				player.display_name, player.mask.display_name,
+				CardTypes.mask_gambit_name(player.mask.gambit),
+			])
+		if player.has_gambit(CardTypes.MaskGambit.FORGIVENESS):
+			player.forgiveness_left = 1
+		if player.has_gambit(CardTypes.MaskGambit.GUARD):
+			player.guard_active = true
 
 	# Compenso per chi gioca per secondo: senza, il primo giocatore vince
 	# troppo spesso, perche' da' il colpo iniziale e spesso anche quello finale.
@@ -156,18 +179,33 @@ func _begin_turn() -> void:
 		report["mana"] = active.mana
 		report["second_player_bonus"] = balance.second_player_bonus_mana
 
+	# La gabbia: il tratto del Carceriere toglie mana a chi gli sta davanti.
+	var cage_cut: int = 0
+	if defender.cage_strength > 0 and active.mana > 0:
+		cage_cut = mini(defender.cage_strength, active.mana)
+		active.mana -= cage_cut
+		active.mana_at_turn_start = active.mana
+		report["mana"] = active.mana
+		report["cage_cut"] = cage_cut
+
 	phase = CardTypes.Phase.AWAITING_ACTION
 
 	# Log del mana
 	var mana_text: String = "mana %d" % report["mana"]
 	if report["mana_bonus"] > 0:
 		mana_text += " (base %d +%d casuale)" % [report["mana_base"], report["mana_bonus"]]
+	if report.get("mask_bonus", 0) != 0:
+		mana_text += " (%+d maschera)" % report["mask_bonus"]
 	if report.get("second_player_bonus", 0) > 0:
 		mana_text += " (+%d compenso)" % report["second_player_bonus"]
 	if report["chill_penalty"] > 0:
 		mana_text += " (-%d congelato)" % report["chill_penalty"]
+	if cage_cut > 0:
+		mana_text += " (-%d gabbia)" % cage_cut
 
 	_add_log("--- Turno %d: %s, %s ---" % [turn_number, active.display_name, mana_text])
+
+	_apply_turn_gambits()
 
 	# Log degli status
 	var status_report: Dictionary = report["status_report"]
@@ -209,6 +247,17 @@ func draw_and_play() -> CardTypes.TurnResult:
 
 	# --- BUST: la carta costa piu' del mana disponibile -------------------
 	if not active.can_afford(cost):
+		# Il perdono della maschera: la carta torna in fondo al mazzo e il
+		# turno continua, come se nulla fosse successo.
+		if active.forgiveness_left > 0:
+			active.forgiveness_left -= 1
+			active.draw_pile.insert(0, instance)
+			_add_log("  ✦ %s pesca %s (costo %d) con solo %d mana: il pubblico perdona." % [
+				active.display_name, instance.get_display_name(), cost, active.mana,
+			])
+			forgiven.emit(instance)
+			return CardTypes.TurnResult.PLAYING
+
 		_add_log("  ✖ BUST! %s pesca %s (costo %d) con solo %d mana." % [
 			active.display_name, instance.get_display_name(), cost, active.mana,
 		])
@@ -220,7 +269,10 @@ func draw_and_play() -> CardTypes.TurnResult:
 		busted.emit(instance)
 
 		# Il critico va all'avversario, se la variante scelta lo prevede.
+		# Con la Tragedia addosso, il rivale ti ruba la scena x3.
 		var crit: float = balance.crit_multiplier_for_penalty()
+		if crit > 1.0 and active.has_gambit(CardTypes.MaskGambit.TRAGEDY):
+			crit = 3.0
 		if crit > 1.0:
 			defender.pending_crit = crit
 			_add_log("  %s ottiene il CRITICO x%.1f al prossimo turno." % [defender.display_name, crit])
@@ -266,8 +318,66 @@ func stop_turn() -> CardTypes.TurnResult:
 
 ## Chiude il turno: le carte tornano nel mazzo (rimescolato) e si cambia giocatore.
 func _finish_turn() -> void:
+	# Lo Specchio dell'avversario guardera' cosa hai giocato.
+	var ids: Array[StringName] = []
+	for instance: CardInstance in active.played:
+		if instance.data != null:
+			ids.append(instance.data.id)
+	active.last_played_ids = ids
+
 	active.reshuffle(rng)
 	_switch_active()
+
+
+## Le regole dell'azzardo che scattano a inizio turno, per chi sta giocando.
+func _apply_turn_gambits() -> void:
+	# Improvvisazione: il primo passo falso di ogni turno e' perdonato.
+	if active.has_gambit(CardTypes.MaskGambit.COMEDY):
+		active.forgiveness_left = maxi(active.forgiveness_left, 1)
+
+	# Riflesso: le carte che il rivale ha appena giocato ti costano meno.
+	if active.has_gambit(CardTypes.MaskGambit.MIRROR) and not defender.last_played_ids.is_empty():
+		var reflected: int = 0
+		for instance: CardInstance in active.draw_pile:
+			if instance.data == null or not defender.last_played_ids.has(instance.data.id):
+				continue
+			instance.cost_modifier = -maxi(int(ceil(float(instance.data.cost) * 0.3)), 1)
+			reflected += 1
+		if reflected > 0:
+			_add_log("  ✦ RIFLESSO: %d carte del rivale ti costano il 30%% in meno." % reflected)
+
+
+## La prossima carta del copione, se la maschera permette di vederla
+## (Presagio). Null negli altri casi, o se non c'e' nulla da pescare.
+func peek_next_card() -> CardInstance:
+	if phase != CardTypes.Phase.AWAITING_ACTION:
+		return null
+	if not active.has_gambit(CardTypes.MaskGambit.OMEN):
+		return null
+	if active.draw_pile.is_empty():
+		return null
+	return active.draw_pile.back()
+
+
+## Le sinergie valide per un giocatore: quelle della sua maschera, se ne ha
+## una con affinita', altrimenti quelle globali della battaglia.
+func _rules_for(player: BattlePlayer) -> Array[SynergyRule]:
+	if player.mask != null and player.mask.replaces_synergies():
+		return player.mask.synergies
+	return synergy_rules
+
+
+## Lo scudo piu' grande tra le carte giocate: e' quello che l'Inganno raddoppia.
+func _largest_shield_played(player: BattlePlayer) -> int:
+	var largest: int = 0
+	for instance: CardInstance in player.played:
+		if instance.data == null:
+			continue
+		for effect: CardEffect in instance.data.effects:
+			var shield_effect: GainShieldEffect = effect as GainShieldEffect
+			if shield_effect != null:
+				largest = maxi(largest, shield_effect.amount)
+	return largest
 
 
 ## Passa il turno all'altro giocatore.
@@ -301,11 +411,25 @@ func _resolve_turn(apply_card_effects: bool, convert_mana_to_shield: bool) -> vo
 	ctx.opponent = defender
 	ctx.card = null
 
-	# 1. Sinergie (contano le carte che hai giocato).
+	# 1. Sinergie (contano le carte che hai giocato). Con una maschera addosso
+	#    valgono solo quelle della sua affinita'.
 	if apply_card_effects:
-		for rule: SynergyRule in synergy_rules:
+		for rule: SynergyRule in _rules_for(active):
 			if rule != null:
 				rule.evaluate(ctx)
+
+	# 1b. Affinita' della maschera: gli elementi affini rendono di piu', gli
+	#     altri un po' meno. E' cosi' che "le carte cambiano funzione".
+	var mask: MaskData = active.mask
+	if apply_card_effects and mask != null and mask.replaces_synergies():
+		for raw_element: Variant in ctx.played_elements():
+			var element: CardTypes.Element = raw_element
+			if element == CardTypes.Element.NONE:
+				continue
+			if mask.is_affine(element):
+				ctx.multiply_element_damage(element, mask.affinity_multiplier)
+			else:
+				ctx.multiply_element_damage(element, mask.off_affinity_multiplier)
 
 	# 2. Effetti delle carte.
 	if apply_card_effects:
@@ -316,10 +440,18 @@ func _resolve_turn(apply_card_effects: bool, convert_mana_to_shield: bool) -> vo
 	else:
 		ctx.add_log("  (le carte giocate vengono perse)")
 
-	# 3. Danno finale.
+	# 2b. Inganno: lo scudo piu' grande del turno vale doppio.
+	if apply_card_effects and active.has_gambit(CardTypes.MaskGambit.DECEIT):
+		var doubled: int = _largest_shield_played(active)
+		if doubled > 0:
+			ctx.add_shield(doubled)
+			ctx.add_log("  ✦ INGANNO: il primo scudo raddoppia (+%d)" % doubled)
+
+	# 3. Danno finale (critico, Potenziato e postura della maschera).
 	var raw_damage: int = ctx.total_damage()
 	var final_damage: int = int(round(
 		float(raw_damage) * active.turn_damage_multiplier() * active.current_crit
+		* active.posture_damage_scale()
 	))
 
 	var breakdown: Dictionary = ctx.damage_breakdown()
@@ -344,7 +476,10 @@ func _resolve_turn(apply_card_effects: bool, convert_mana_to_shield: bool) -> vo
 				damage_report["raw"] - damage_report["after_reduction"],
 			])
 		if damage_report["absorbed"] > 0:
-			_add_log("    assorbe %d con lo scudo" % damage_report["absorbed"])
+			if damage_report.get("guarded", false):
+				_add_log("    ✦ GUARDIA: lo scudo assorbe %d e non si consuma" % damage_report["absorbed"])
+			else:
+				_add_log("    assorbe %d con lo scudo" % damage_report["absorbed"])
 		_add_log("    %s subisce %d danni alla vita (ora %d/%d)" % [
 			defender.display_name,
 			damage_report["to_health"],

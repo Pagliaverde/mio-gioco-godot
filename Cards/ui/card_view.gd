@@ -272,8 +272,9 @@ func _refresh() -> void:
 
 	_tags_label.text = " ".join(card.tags) if not card.tags.is_empty() else ""
 
-	if card.art != null:
-		_art_image.texture = card.art
+	var art: Texture2D = resolve_art(card)
+	if art != null:
+		_art_image.texture = art
 		_art_image.visible = true
 		_art_hint.visible = false
 		_art_placeholder.color = Color(0.14, 0.14, 0.18, 1.0)
@@ -282,6 +283,25 @@ func _refresh() -> void:
 		_art_image.visible = false
 		_art_hint.visible = true
 		_art_placeholder.color = element_color.darkened(0.78)
+
+
+## L'illustrazione da mostrare per una carta, in ordine di preferenza:
+## 1. quella assegnata nel campo [member CardData.art];
+## 2. il file [code]Cards/art/<id>.png[/code], se esiste (anche ritoccato a mano);
+## 3. quella dipinta al volo da [CardArtPainter], unica per ogni carta.
+static func resolve_art(data: CardData) -> Texture2D:
+	if data == null:
+		return null
+	if data.art != null:
+		return data.art
+	if data.id != &"":
+		for extension: String in ["png", "webp", "jpg", "jpeg", "svg"]:
+			var path: String = "res://Cards/art/%s.%s" % [data.id, extension]
+			if ResourceLoader.exists(path):
+				var loaded: Resource = load(path)
+				if loaded is Texture2D:
+					return loaded as Texture2D
+	return CardArtPainter.paint(data)
 
 
 func _apply_empty_state() -> void:

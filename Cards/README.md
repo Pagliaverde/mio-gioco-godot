@@ -185,10 +185,21 @@ Cards/
 │   ├── battle_simulator.gd          Motore delle simulazioni + report
 │   ├── sim_runner.tscn/gd           ← F6 qui per le statistiche
 │   └── battle_demo.tscn/gd          ← F6 qui per vedere una partita
+├── mask/
+│   ├── mask_data.gd                 ★ Una MASCHERA (affinità, regola dell'azzardo, postura)
+│   └── mask_library.gd              Le nove maschere della storia
+├── ui/
+│   ├── card_view.gd                 Una carta disegnata (nodo riutilizzabile)
+│   └── card_art_painter.gd          ★ L'illustrazione di ogni carta, in pixel art
+├── art/                             ← i PNG esportati (ritoccabili)
 ├── table/
 │   └── play_table.tscn/gd           ← F6 qui per GIOCARE una partita
 └── tools/
-    └── generate_cards.gd            Genera i .tres
+    ├── generate_cards.gd            Genera i .tres
+    ├── generate_card_art.gd         Esporta le illustrazioni in art/
+    ├── check_masks.gd               Verifica le maschere (headless)
+    ├── check_story.tscn             Gioca tutta la storia da sola (headless)
+    └── screenshot_story.tscn        Fotografa le schermate della storia
 ```
 
 ### `CardData` vs `CardInstance`
@@ -887,6 +898,47 @@ E la modalità `RISK_ANALYSIS` mostra il rischio a ogni livello di mana — il g
 Ogni partita ha un **seme**. Con lo stesso seme ottieni la stessa identica partita. Se il simulatore trova un numero strano, usa quel seme nella demo per rivedere esattamente cosa è successo.
 
 La modalità `SAME_SEED_TWICE` della demo verifica che il motore sia davvero deterministico.
+
+---
+
+## 🎭 Le maschere
+
+Le maschere sono **uno strato sopra il motore**, non un rifacimento: una
+maschera non cambia le carte, cambia le regole intorno alle carte. Sono il
+cuore della storia (vedi [`Story/README.md`](../Story/README.md) e
+[`Docs/TRAMA_E_MASCHERE.md`](../Docs/TRAMA_E_MASCHERE.md)).
+
+| File | Cosa |
+|---|---|
+| `mask/mask_data.gd` | `MaskData`: affinità, regola dell'azzardo (`CardTypes.MaskGambit`), postura, prezzo |
+| `mask/mask_library.gd` | Le nove maschere, in codice come `CardLibrary` |
+| `battle/battle_state.gd` | Gli hook: cerca `has_gambit` |
+
+Per usarle fuori dalla storia:
+
+```gdscript
+state.setup(balance, deck_a, deck_b, CardLibrary.build_synergies())
+state.set_masks(MaskLibrary.tragedy(), null)   # dopo setup, prima di start
+state.start()
+state.peek_next_card()   # non null solo con il Presagio addosso
+state.forgiven           # segnale: un bust perdonato dalla maschera
+```
+
+`check_masks.gd` (in `tools/`) verifica che ogni regola scatti davvero:
+
+```bash
+godot --headless --path . --script res://Cards/tools/check_masks.gd
+```
+
+---
+
+## 🖼 Le illustrazioni
+
+Ogni carta ha un'illustrazione in pixel art dipinta in codice da
+`ui/card_art_painter.gd`, diversa per ogni carta (elemento, effetti, costo,
+rarità). `CardView` la usa quando la carta non ha un'immagine sua.
+`tools/generate_card_art.gd` le esporta come PNG in `art/`, dove le puoi
+ritoccare. Vedi [`art/README.md`](art/README.md).
 
 ---
 

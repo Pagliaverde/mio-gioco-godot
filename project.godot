@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Settings="*res://Settings/settings.gd"
 DialogueManager="*uid://c3rodes2l3gxb"
+Pause="*res://Pause/pause.gd"
 
 [dialogue_manager]
 
