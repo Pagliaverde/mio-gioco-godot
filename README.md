@@ -76,11 +76,7 @@ Premendo `Esc` durante il gioco il mondo si ferma e compare il menu di pausa
    ```
 2. Apri Godot e, dal **Project Manager**, clicca su **Importa** e seleziona il file `project.godot` nella cartella clonata.
 3. Al primo avvio Godot reimporterà tutti gli asset (può richiedere qualche secondo).
-<<<<<<< Updated upstream
 4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è il menu (`Menu/main_menu.tscn`): **Storia → Nuova Partita** comincia dal camerino, **Riprendi** ricarica l'ultimo salvataggio.
-=======
-4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è `Menu/main_menu.tscn`: da lì **Storia → Nuova Partita** porta alla camera da letto (`World/bedroom/bedroom.tscn`), dove comincia l'avventura.
->>>>>>> Stashed changes
 
 > Il plugin **Dialogue Manager** è già incluso nella cartella `addons/` e abilitato in `project.godot`: non serve installarlo a parte.
 
@@ -89,22 +85,17 @@ Premendo `Esc` durante il gioco il mondo si ferma e compare il menu di pausa
 ```
 mio-gioco-godot/
 ├── project.godot              # Configurazione del progetto (input, autoload, plugin)
-├── Story/                     # La storia: regista, dati, battaglia, maschere disegnate, platea
-├── Cards/                     # Il motore delle carte, le maschere, le illustrazioni, il simulatore
-├── Menu/                      # Menu principale a mazzo di carte
-├── Settings/                  # Impostazioni e tema dell'interfaccia
-├── Docs/                      # Documento di design: trama e maschere
+├── Story/                     # La storia: camerino, zone, bauli, boss, platea, salvataggio
+├── Cards/                     # Il motore delle carte: dati, battaglia, effetti, simulatore
+├── Menu/                      # Menu principale a mazzo di carte (vedi Menu/README.md)
+├── Pause/                     # Menu di pausa (Esc): vedi Pause/README.md
+├── Save/                      # Salvataggio della partita: vedi Save/README.md
+├── Settings/                  # Impostazioni, tema globale e accessibilità
+├── Docs/                      # Documenti di design (trama, maschere, prompt per l'IA)
 ├── Scene/
 │   ├── Main.tscn              # Campo da gioco: mappa, camera, player e NPC
 │   ├── Player.tscn            # Protagonista (sprite animati + suoni)
 │   └── SlimeNpc.tscn          # NPC slime
-├── Menu/                      # Menu principale (mazzo di carte, titolo, musiche)
-├── Pause/                     # Menu di pausa (Esc): vedi Pause/README.md
-├── Save/                      # Salvataggio della partita: vedi Save/README.md
-├── Settings/                  # Impostazioni, tema globale e accessibilità
-├── Cards/                     # Carte, mazzi, bilanciamento e tavolo di battaglia
-├── World/                     # Il mondo di gioco: 3 stanze di cartone (vedi World/README.md)
-├── Docs/                      # Documenti di design (trama, maschere)
 ├── Asset/
 │   ├── Script/
 │   │   ├── player.gd          # Movimento, animazioni e attacco del player
@@ -152,7 +143,6 @@ La sintassi completa è documentata nella [guida ufficiale di Dialogue Manager](
 - [x] Attacco con la spada ed effetti sonori
 - [x] Prima mappa a tile
 - [x] Primo NPC con dialogo
-<<<<<<< Updated upstream
 - [x] Motore delle carte con pesca casuale e simulatore
 - [x] Menu principale e impostazioni
 - [x] La storia: camerino, zone, bauli, cinque boss, finali, salvataggio
@@ -161,18 +151,12 @@ La sintassi completa è documentata nella [guida ufficiale di Dialogue Manager](
 - [ ] Il Segno: l'abilità passiva firmata di ogni maschera (sistema F2)
 - [ ] Bauli segreti nelle zone già battute
 - [ ] Negozio e pacchetti
-- [ ] Avviare il dialogo solo quando il player è vicino all'NPC (area di interazione)
-- [ ] Tasto di interazione dedicato (es. `E`), separato dall'attacco
-=======
 - [x] Avviare il dialogo solo quando il player è vicino all'NPC (area di interazione)
 - [x] Tasto di interazione dedicato (es. `E`), separato dall'attacco
->>>>>>> Stashed changes
 - [ ] Hitbox della spada e interazione con i nemici
 - [ ] Animali (galline, mucche) già presenti negli asset
 - [ ] Inventario e oggetti raccoglibili
-- [x] Menu principale
 - [x] Menu di pausa (`Esc`) e salvataggio della partita
-- [x] Il mondo: camera da letto, villaggio e corridoio dei boss (`World/`)
 
 ## 🤝 Contribuire (workflow Git)
 

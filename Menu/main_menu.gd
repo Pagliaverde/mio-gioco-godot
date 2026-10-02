@@ -666,22 +666,13 @@ static func build_default_actions() -> Array[MenuAction]:
 	# La sua maschera e' il segno del gioco: e' la prima cosa che si vede.
 	var story: MenuAction = MenuAction.of(
 		&"story", "Storia",
-<<<<<<< Updated upstream
-		"Fuori Copione: ti svegli senza volto in un teatro che e' tutto il mondo. Esci, se ci riesci."
-	)
-	story.sub_actions = [
-		MenuAction.of(&"continue", "Riprendi", "Continua dall'ultimo salvataggio."),
-		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia dal camerino. Il numero sul muro sale di uno.", STORY_SCENE),
-		MenuAction.of(&"story_options", "Altre Opzioni", "Difficolta', capitoli e altre impostazioni della storia."),
-=======
-		"Inizia l'avventura e attraversa i dungeon.",
+		"Fuori Copione: ti svegli senza volto in un teatro che e' tutto il mondo. Esci, se ci riesci.",
 		"", &"mask"
 	)
 	story.sub_actions = [
 		MenuAction.of(&"continue", "Riprendi", "Continua dall'ultimo salvataggio.", "", &"play"),
-		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia l'avventura da capo.", "res://Scene/Main.tscn", &"plus"),
+		MenuAction.of(&"new_game", "Nuova Partita", "Ricomincia dal camerino. Il numero sul muro sale di uno.", STORY_SCENE, &"plus"),
 		MenuAction.of(&"story_options", "Altre Opzioni", "Difficolta', capitoli e altre impostazioni della storia.", "", &"gear"),
->>>>>>> Stashed changes
 	]
 	list.append(story)
 
