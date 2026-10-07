@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cpkybqjhiggby"
-path="res://.godot/imported/Tilled Dirt.png-1f40038c58d40a17698b26cd8414f970.ctex"
+uid="uid://cm2vx726krmof"
+path="res://.godot/imported/HouseAndCity.png-eeb5509f89c6c9cad487420802ed1a1a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Asset/TileMap/Map/Tilled Dirt.png"
-dest_files=["res://.godot/imported/Tilled Dirt.png-1f40038c58d40a17698b26cd8414f970.ctex"]
+source_file="res://Asset/TileMap/MyTileMap/Details/HouseAndCity.png"
+dest_files=["res://.godot/imported/HouseAndCity.png-eeb5509f89c6c9cad487420802ed1a1a.ctex"]
 
 [params]
 
