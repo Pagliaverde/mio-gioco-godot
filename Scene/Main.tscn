@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bqa2mrr8wq4vl" path="res://Scene/Player/SlimeNpc.tscn" id="4_h175a"]
 [ext_resource type="PackedScene" uid="uid://dwrcsqj855l6r" path="res://Scene/Player/mannequin.tscn" id="6_aan6j"]
 [ext_resource type="Texture2D" uid="uid://dfds7kkq8o2df" path="res://Asset/TileMap/MyTileMap/Details/diamond_anim-Sheet.png" id="9_6a8me"]
+[ext_resource type="PackedScene" path="res://Shop/shop_stall.tscn" id="10_shop"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hueuk"]
 texture = ExtResource("1_togfq")
@@ -1220,6 +1221,10 @@ layer_2/name = "Layer2"
 [node name="Mannequin" parent="." unique_id=759609655 instance=ExtResource("6_aan6j")]
 position = Vector2(100, 413)
 scale = Vector2(4, 4)
+
+[node name="ShopStall" parent="." unique_id=389951642 instance=ExtResource("10_shop")]
+position = Vector2(2002, 115)
+scale = Vector2(2.4958596, 2.9184008)
 
 [node name="diamond" type="AnimatedSprite2D" parent="." unique_id=216915750]
 position = Vector2(474, -153)

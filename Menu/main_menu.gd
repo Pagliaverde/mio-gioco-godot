@@ -32,6 +32,9 @@ signal quit_requested()
 ## passa dal salvataggio ([SaveGame]), che riporta alla scena salvata.
 const STORY_SCENE := "res://Story/story.tscn"
 
+## Il negozio: compra carte con le monete guadagnate combattendo.
+const SHOP_SCENE := "res://Shop/shop.tscn"
+
 @export_group("Titolo")
 
 ## L'immagine del titolo, mostrata in alto al centro del menu.
@@ -685,7 +688,7 @@ static func build_default_actions() -> Array[MenuAction]:
 	list.append(MenuAction.of(
 		&"shop", "Negozio",
 		"Compra carte singole o apri pacchetti.",
-		"", &"shop"
+		SHOP_SCENE, &"shop"
 	))
 
 	list.append(MenuAction.of(

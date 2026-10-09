@@ -55,6 +55,20 @@ const FALLBACK_RARITY_COLORS: Dictionary = {
 ## Altezza dell'illustrazione in pixel.
 @export_range(40, 400, 2) var art_height: int = 130
 
+## Quanto ingrandire testi, pastiglie e icone rispetto alla misura normale.
+##
+## [b]Serve per le carte grandi:[/b] le misure qui dentro sono fisse, quindi una
+## carta disegnata a 400 pixel di larghezza avrebbe lo stesso testo minuscolo di
+## una a 190. Con [code]font_scale = 1.6[/code] il testo cresce insieme alla carta.
+##
+## [b]Il valore di default e' 1.0:[/b] dove la carta e' gia' della misura giusta
+## (240, come in battaglia) non cambia niente.
+@export_range(0.5, 3.0, 0.05) var font_scale: float = 1.0:
+	set(value):
+		font_scale = clampf(value, 0.5, 3.0)
+		if _built:
+			_refresh()
+
 
 var _built: bool = false
 var _table: RarityTable
@@ -62,6 +76,7 @@ var _table: RarityTable
 # --- Nodi costruiti in codice ---
 var _panel_style: StyleBoxFlat
 var _badge_style: StyleBoxFlat
+var _badge: PanelContainer
 var _name_label: Label
 var _cost_label: Label
 var _element_swatch: ColorRect
@@ -95,6 +110,34 @@ func _resolve_table() -> void:
 	_table = rarity_table
 	if _table == null:
 		_table = RarityTable.load_default()
+
+
+## Un corpo di testo, scalato secondo [member font_scale].
+func _fs(base: int) -> int:
+	return maxi(int(round(float(base) * font_scale)), 7)
+
+
+## Un lato in pixel, scalato secondo [member font_scale].
+func _px(value: int) -> int:
+	return maxi(int(round(float(value) * font_scale)), 2)
+
+
+## Applica tutte le misure che dipendono da [member font_scale].
+##
+## Le misure non possono stare in [method _ensure_built]: quella gira una volta
+## sola, e [member font_scale] puo' cambiare dopo.
+func _apply_scale() -> void:
+	_name_label.add_theme_font_size_override("font_size", _fs(17))
+	_cost_label.add_theme_font_size_override("font_size", _fs(18))
+	_element_label.add_theme_font_size_override("font_size", _fs(13))
+	_rarity_label.add_theme_font_size_override("font_size", _fs(13))
+	_description_label.add_theme_font_size_override("font_size", _fs(13))
+	_tags_label.add_theme_font_size_override("font_size", _fs(11))
+	_art_hint.add_theme_font_size_override("font_size", _fs(12))
+
+	_badge.custom_minimum_size = Vector2(_px(38), _px(38))
+	_badge_style.set_corner_radius_all(_px(19))
+	_element_swatch.custom_minimum_size = Vector2(_px(12), _px(12))
 
 
 ## Il colore della cornice per una rarita'.
@@ -151,6 +194,7 @@ func _ensure_built() -> void:
 	var badge: PanelContainer = PanelContainer.new()
 	badge.custom_minimum_size = Vector2(38, 38)
 	badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_badge = badge
 	_badge_style = StyleBoxFlat.new()
 	_badge_style.bg_color = Color(0.16, 0.20, 0.34, 1.0)
 	_badge_style.set_corner_radius_all(19)
@@ -241,6 +285,7 @@ func _refresh() -> void:
 
 	custom_minimum_size = Vector2(card_width, card_height)
 	_art_box.custom_minimum_size = Vector2(0, art_height)
+	_apply_scale()
 
 	if card == null:
 		_apply_empty_state()
