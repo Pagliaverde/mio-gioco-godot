@@ -61,7 +61,7 @@ disegnato nella mappa.
 **Dov'è adesso:** in `Scene/Main.tscn`, vicino al punto di partenza
 (`position = Vector2(238, 850)`), così puoi provarlo subito.
 
-**Per spostarlo:** apri `Scene/Main.tscn`, seleziona `ShopStall` nel pannello
+**Per spostarlo:** apri `Scene/Main.tscn`, seleziona `ShopBooth` nel pannello
 Scena e trascinalo sopra la tua bottega. Oppure cambia a mano la `position`.
 Funziona come un NPC: dove lo metti, lì appare il riquadro `E`.
 
@@ -77,7 +77,7 @@ porta. Se ti sembra troppo stretta o troppo larga, cambia
 ```
 Player (InteractionArea, mask 2)
     ↓  cerca aree nel gruppo "interactable"
-ShopStall (InteractionArea, layer 2, gruppo "interactable")
+ShopBooth (InteractionArea, layer 2, gruppo "interactable")
     ↓  il player chiama interact()
 ShopScreen.open_over()   ← il negozio
 ```
@@ -182,7 +182,7 @@ Shop/
 ├── shop_catalog.gd    # ShopCatalog — prezzi, monete, cosa è in vendita
 ├── shop_wallet.gd     # ShopWallet — monete e carte comprate (user://wallet.cfg)
 ├── shop_stall.tscn    # il banco da mettere sulla mappa
-└── shop_stall.gd      # ShopStall — la zona interattiva
+└── shop_stall.gd      # ShopBooth — la zona interattiva
 ```
 
 **Chi fa cosa:** `ShopWallet` ricorda, `ShopCatalog` decide i numeri,

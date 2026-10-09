@@ -1222,7 +1222,7 @@ layer_2/name = "Layer2"
 position = Vector2(100, 413)
 scale = Vector2(4, 4)
 
-[node name="ShopStall" parent="." unique_id=389951642 instance=ExtResource("10_shop")]
+[node name="ShopBooth" parent="." unique_id=389951642 instance=ExtResource("10_shop")]
 position = Vector2(2002, 115)
 scale = Vector2(2.4958596, 2.9184008)
 

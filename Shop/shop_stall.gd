@@ -9,8 +9,15 @@
 ## sopra alla bottega della mappa. Spostala dove vuoi dal pannello Scena, come
 ## un NPC. Il riquadro "E" appare da solo quando il personaggio si avvicina.
 ##
+## [b]Attenzione al nome:[/b] si chiama [code]ShopBooth[/code] e non
+## [code]ShopStall[/code]. [ShopStall] e' il banco del mondo esplorabile
+## ([code]World/components/shop_stall.gd[/code]), che ha un negozio suo
+## ([ShopMenu]) e la valuta del gioco ([member GameState.money], "Biglietti").
+## Due classi globali con lo stesso nome non compilano: vedi
+## [code]Shop/README.md[/code].
+##
 ## Vedi [code]Shop/README.md[/code].
-class_name ShopStall extends Node2D
+class_name ShopBooth extends Node2D
 
 
 @onready var interaction_area: Area2D = $InteractionArea

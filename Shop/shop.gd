@@ -7,7 +7,7 @@
 ## [/codeblock]
 ## Nel secondo caso il gioco si ferma ([code]get_tree().paused = true[/code])
 ## mentre il negozio e' aperto, come fa il menu di pausa: il personaggio non
-## cammina e nessuno si muove. Vedi [ShopStall].
+## cammina e nessuno si muove. Vedi [ShopBooth].
 ##
 ## [b]Com'e' fatta la schermata:[/b] un velo scuro, un pannello bordato al
 ## centro (lo stesso schema delle impostazioni), e dentro la vetrina divisa in
