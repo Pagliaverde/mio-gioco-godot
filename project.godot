@@ -20,6 +20,8 @@ config/icon="res://icon.svg"
 Settings="*res://Settings/settings.gd"
 DialogueManager="*uid://c3rodes2l3gxb"
 Pause="*res://Pause/pause.gd"
+GameState="*res://World/game_state.gd"
+Transition="*res://World/scene_transition.gd"
 
 [dialogue_manager]
 
@@ -77,10 +79,28 @@ interact={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":69,"key_label":0,"unicode":101,"location":0,"echo":false,"script":null)
 ]
 }
+run={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194325,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+inventory={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":73,"key_label":0,"unicode":105,"location":0,"echo":false,"script":null)
+, Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194306,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
 
 [internationalization]
 
 locale/translations_pot_files=PackedStringArray("res://Asset/Dialogue/DialogueChat/Slime_Dialogue.dialogue")
+
+[layer_names]
+
+2d_physics/layer_1="mondo"
+2d_physics/layer_2="interazioni"
+2d_physics/layer_3="giocatore"
+2d_physics/layer_4="personaggi"
 
 [physics]
 

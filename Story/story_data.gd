@@ -327,6 +327,18 @@ static func _ultimo() -> StoryBoss:
 	return boss
 
 
+## La difficolta' delle impostazioni sposta la gavetta di un boss di un passo:
+## facile -1, difficile +1.
+static func apply_difficulty(boss: StoryBoss) -> void:
+	var delta: int = 0
+	match Settings.difficulty():
+		"easy":
+			delta = -1
+		"hard":
+			delta = 1
+	boss.level = maxi(boss.level + delta, 1)
+
+
 ## Trova un boss dal suo id.
 static func find_boss(boss_id: StringName) -> StoryBoss:
 	for zone: StoryZone in zones():

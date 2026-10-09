@@ -28,9 +28,10 @@ signal action_selected(action_id: StringName)
 ## Emesso quando il giocatore sceglie di uscire e conferma.
 signal quit_requested()
 
-## La scena della storia: "Nuova Partita" comincia dal camerino. "Riprendi"
-## passa dal salvataggio ([SaveGame]), che riporta alla scena salvata.
-const STORY_SCENE := "res://Story/story.tscn"
+## La scena della storia: "Nuova Partita" comincia dal camerino, nel mondo
+## esplorabile ([Overworld]). "Riprendi" passa dal salvataggio ([SaveGame]),
+## che riporta alla scena salvata.
+const STORY_SCENE := "res://World/overworld.tscn"
 
 @export_group("Titolo")
 
@@ -926,6 +927,9 @@ func _execute_action(action: MenuAction) -> void:
 	if action.has_scene():
 		if ResourceLoader.exists(action.scene_path):
 			var path: String = action.scene_path
+			# Una partita nuova riparte da zero anche se ce n'era una aperta.
+			if action.id == &"new_game":
+				GameState.new_game()
 			_play_card_out(func() -> void: get_tree().change_scene_to_file(path))
 			return
 

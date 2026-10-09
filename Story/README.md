@@ -7,8 +7,13 @@ che è tutto il mondo, batti cinque attori che hanno provato a uscire prima di t
 e alla fine scegli come finire. È l'implementazione di
 [`Docs/TRAMA_E_MASCHERE.md`](../Docs/TRAMA_E_MASCHERE.md).
 
-**Per giocare:** menu principale → **Storia** → **Nuova Partita**.
-Oppure apri `Story/story.tscn` e premi **F6**.
+**Per giocare:** menu principale → **Storia** → **Nuova Partita**: la storia
+si gioca camminando nel teatro, vedi [`World/README.md`](../World/README.md).
+I testi, i boss, le maschere e la battaglia sono quelli descritti qui sotto:
+il mondo esplorabile li usa così come sono.
+
+La versione "a pagine" (`Story/story.tscn`, apribile con **F6**) resta: è
+quella che gioca `check_story` per controllare battaglie e testi senza mappe.
 
 ---
 
