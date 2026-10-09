@@ -51,7 +51,13 @@ quel momento i nodi non esistono ancora. Sono loro a farsi avanti quando nascono
 > posizione e direzione — non lo stato momentaneo, perché al caricamento deve
 > ricominciare fermo, non a metà di una conversazione che non esiste più.
 >
-> **Un altro:** la storia (`Story/story.gd`). La scena della storia salva
+> **Il mondo esplorabile** (`World/overworld.gd`): come la storia, un nodo
+> figlio `Progresso` gira le due domande all'autoload `GameState` (mappa,
+> posizione, maschere, biglietti, vita, oggetti, boss, bauli). Il `Player`
+> lì non salva da solo (`saves_itself = false`): la posizione la tiene
+> `GameState`. Vedi [`World/README.md`](../World/README.md#-salvataggio).
+>
+> **Un altro:** la storia a pagine (`Story/story.gd`). La scena della storia salva
 > tramite un nodo figlio `Progresso`, perché `SaveGame` raccoglie i
 > discendenti della scena e non la scena stessa. Salva zona, gavetta, maschere
 > e visite alla platea: si riparte dall'inizio della zona.

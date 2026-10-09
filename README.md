@@ -3,11 +3,16 @@
 Un card game a turni con **pesca casuale**, sviluppato con **Godot 4**: non hai una mano,
 peschi una carta alla volta e decidi se rischiare ancora o fermarti. La storia comincia
 in una stanza senza volto e attraversa un teatro che è tutto il mondo: cinque boss,
-nove maschere, tre finali. Vedi [`Story/README.md`](Story/README.md) e
-[`Docs/TRAMA_E_MASCHERE.md`](Docs/TRAMA_E_MASCHERE.md).
+nove maschere, tre finali.
 
-Nel repository resta anche il prototipo 2D top-down (`Scene/Main.tscn`): un protagonista
-che si muove e attacca, una mappa a tile e un NPC slime con cui dialogare.
+**Si gioca camminando**, come nei giochi di mostri tascabili: il teatro è fatto di
+stanze esplorabili dall'alto, i boss ti vedono e ti vengono incontro, nelle quinte
+si incontrano le comparse, si compra nei negozi con i **Biglietti**. Le scene sono
+il gioco di carte, sopra al mondo. Vedi [`World/README.md`](World/README.md),
+[`Story/README.md`](Story/README.md) e [`Docs/TRAMA_E_MASCHERE.md`](Docs/TRAMA_E_MASCHERE.md).
+
+Nel repository resta anche il primo prototipo 2D top-down (`Scene/Main.tscn`), con lo
+slime da cui è nato il mondo.
 
 ![Godot](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)
 ![GDScript](https://img.shields.io/badge/linguaggio-GDScript-355570)
@@ -30,7 +35,8 @@ che si muove e attacca, una mappa a tile e un NPC slime con cui dialogare.
 
 ## ✨ Funzionalità
 
-- **La storia** (`Story/`): dal camerino al fondo della platea, con i Bauli di Scena, la platea dei manichini, cinque boss e tre finali. Salvataggio automatico, **Riprendi** dal menu
+- **Il mondo esplorabile** (`World/`): undici mappe (le sette zone della storia e quattro stanze laterali), boss nel mondo con lo sguardo da allenatore, incontri nelle quinte, negozi, Bauli di Scena, inventario, vita che resta tra le scene, transizioni a lampo prima delle battaglie, luci e palette per zona, collisioni su muri e oggetti
+- **La storia** (`Story/`): dal camerino al fondo della platea, con i Bauli di Scena, la platea dei manichini, cinque boss e tre finali. Salvataggio, **Riprendi** dal menu
 - **Le maschere** (`Cards/mask/`): affinità, regola dell'azzardo e postura; nove maschere, quattro nei bauli e cinque vinte dai boss
 - **Il motore delle carte** (`Cards/`): mazzi, pubblico/mana, pesca, fuori copione/bust, elementi, status, sinergie, simulatore di bilanciamento
 - **Le illustrazioni delle carte**, dipinte in pixel art in codice (`Cards/ui/card_art_painter.gd`) ed esportate in `Cards/art/`
@@ -47,20 +53,18 @@ che si muove e attacca, una mappa a tile e un NPC slime con cui dialogare.
 
 | Azione               | Tastiera                  |
 | -------------------- | ------------------------- |
-| Storia: avanti       | `Invio` / click           |
-| Storia: torna al menu| `Esc`                     |
+| Muoversi             | `W` `A` `S` `D` / frecce  |
+| Correre              | `Maiusc` (tenuto)         |
+| Interagire / parlare | `E`                       |
+| Avanti nei testi     | `Invio` / `Spazio` / `E` / click |
+| Inventario           | `I` / `Tab`               |
 | Scena: pesca         | `Spazio`                  |
 | Scena: fermati       | `S`                       |
-| Muoversi (prototipo) | `W` `A` `S` `D` / frecce  |
-| Attaccare            | `Spazio`                  |
-| Avviare il dialogo   | `Invio`                   |
-| Avanzare nel dialogo | `Invio` / click           |
+| Attaccare (prototipo)| `Spazio`                  |
 | **Pausa**            | `Esc`                     |
 
 Premendo `Esc` durante il gioco il mondo si ferma e compare il menu di pausa
 (Riprendi, Salva, Opzioni, Torna al menu, Esci). Vedi [`Pause/README.md`](Pause/README.md).
-
-> ⚠️ Al momento il dialogo con lo slime è legato all'azione `ui_accept`, che in Godot include anche `Spazio`: premendo Spazio si attacca **e** si apre il dialogo. Vedi la [Roadmap](#-roadmap).
 
 ## 🚀 Come avviare il progetto
 
@@ -76,7 +80,7 @@ Premendo `Esc` durante il gioco il mondo si ferma e compare il menu di pausa
    ```
 2. Apri Godot e, dal **Project Manager**, clicca su **Importa** e seleziona il file `project.godot` nella cartella clonata.
 3. Al primo avvio Godot reimporterà tutti gli asset (può richiedere qualche secondo).
-4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è il menu (`Menu/main_menu.tscn`): **Storia → Nuova Partita** comincia dal camerino, **Riprendi** ricarica l'ultimo salvataggio.
+4. Premi **F5** (o il pulsante ▶️ in alto a destra) per avviare il gioco. La scena principale è il menu (`Menu/main_menu.tscn`): **Storia → Nuova Partita** comincia nel camerino, nel mondo esplorabile; **Riprendi** ricarica l'ultimo salvataggio, nel punto esatto in cui eri.
 
 > Il plugin **Dialogue Manager** è già incluso nella cartella `addons/` e abilitato in `project.godot`: non serve installarlo a parte.
 
@@ -85,7 +89,8 @@ Premendo `Esc` durante il gioco il mondo si ferma e compare il menu di pausa
 ```
 mio-gioco-godot/
 ├── project.godot              # Configurazione del progetto (input, autoload, plugin)
-├── Story/                     # La storia: camerino, zone, bauli, boss, platea, salvataggio
+├── World/                     # Il mondo esplorabile: mappe, regista, negozi, HUD (vedi World/README.md)
+├── Story/                     # La storia: testi, boss, battaglia con le maschere
 ├── Cards/                     # Il motore delle carte: dati, battaglia, effetti, simulatore
 ├── Menu/                      # Menu principale a mazzo di carte (vedi Menu/README.md)
 ├── Pause/                     # Menu di pausa (Esc): vedi Pause/README.md
@@ -149,13 +154,15 @@ La sintassi completa è documentata nella [guida ufficiale di Dialogue Manager](
 - [x] Le maschere (affinità, regola dell'azzardo, postura)
 - [x] Illustrazioni delle carte in pixel art
 - [ ] Il Segno: l'abilità passiva firmata di ogni maschera (sistema F2)
-- [ ] Bauli segreti nelle zone già battute
-- [ ] Negozio e pacchetti
+- [x] Un baule segreto (in graticcia); altri nelle zone già battute
+- [x] Il mondo esplorabile: mappe, boss nel mondo, incontri, transizioni
+- [x] Negozio (battute, maschere, oggetti) e moneta (Biglietti)
+- [ ] Pacchetti di carte
 - [x] Avviare il dialogo solo quando il player è vicino all'NPC (area di interazione)
 - [x] Tasto di interazione dedicato (es. `E`), separato dall'attacco
 - [ ] Hitbox della spada e interazione con i nemici
 - [ ] Animali (galline, mucche) già presenti negli asset
-- [ ] Inventario e oggetti raccoglibili
+- [x] Inventario e oggetti (tè, camomilla, fiori)
 - [x] Menu di pausa (`Esc`) e salvataggio della partita
 
 ## 🤝 Contribuire (workflow Git)

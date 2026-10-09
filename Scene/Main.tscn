@@ -1205,7 +1205,7 @@ layer_0/tile_data = PackedInt32Array(851965, 131072, 6, 851966, 327680, 7, 78643
 
 [node name="Player" parent="." unique_id=1983575886 instance=ExtResource("1_xhtwi")]
 position = Vector2(238, 627.99994)
-scale = Vector2(3.9999995, 3.9999995)
+scale = Vector2(1.34, 1.34)
 
 [node name="Slime" parent="." unique_id=2086001802 instance=ExtResource("4_h175a")]
 position = Vector2(389, 352)

@@ -25,6 +25,24 @@ signal finished(won: bool)
 ## Righe massime di log tenute a schermo.
 @export_range(20, 500, 10) var max_log_lines: int = 160
 
+## Vita con cui cominci la scena. Negativo = piena.
+##
+## Serve al mondo esplorabile: la vita resta tra una scena e l'altra, come in
+## un gioco di ruolo. Il motore non cambia: la vita viene ritoccata dopo
+## [method BattleState.start], come fanno i tratti dei boss.
+var player_start_health: int = -1
+
+## Favore (scudo) con cui cominci la scena: lo danno gli oggetti del negozio.
+var player_start_shield: int = 0
+
+## Il nome con cui compari nel tavolo.
+var player_display_name: String = "Tu"
+
+## Un palco da mostrare al centro, accanto al log (il mondo esplorabile ci
+## mette i due personaggi sotto i riflettori). Va impostato prima di
+## aggiungere il nodo all'albero; null = niente palco, come nella storia.
+var stage: Control = null
+
 
 # --- Configurazione (da prepare) ---
 var _player_deck: DeckData
@@ -115,7 +133,7 @@ func begin() -> void:
 
 	state = BattleState.new()
 	state.setup(_balance, _player_deck, _enemy_deck, CardLibrary.build_synergies(),
-		_battle_seed, "Tu", enemy_name, _player_level, enemy_level)
+		_battle_seed, player_display_name, enemy_name, _player_level, enemy_level)
 	state.set_masks(_player_mask, _enemy_mask)
 
 	if _boss != null:
@@ -138,7 +156,16 @@ func begin() -> void:
 	_result_layer.visible = false
 
 	state.start()
+	if player_start_health > 0:
+		state.player_a.health = clampi(player_start_health, 1, state.player_a.max_health)
+	if player_start_shield > 0:
+		state.player_a.add_shield(player_start_shield)
 	_refresh()
+
+
+## La vita che ti resta (alla fine della scena e' quella da riportare nel mondo).
+func player_health() -> int:
+	return state.player_a.health if state != null else 0
 
 
 ## Fa giocare il turno del giocatore a un'IA (serve ai test senza finestra).
@@ -205,9 +232,15 @@ func _build_ui() -> void:
 	middle.add_theme_constant_override("separation", 18)
 	column.add_child(middle)
 
+	if stage != null:
+		stage.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		stage.size_flags_stretch_ratio = 1.5
+		middle.add_child(stage)
+
 	var log_panel: PanelContainer = PanelContainer.new()
 	log_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	log_panel.size_flags_stretch_ratio = 1.6
+	log_panel.size_flags_stretch_ratio = 1.6 if stage == null else 1.0
 	middle.add_child(log_panel)
 
 	_log_scroll = ScrollContainer.new()

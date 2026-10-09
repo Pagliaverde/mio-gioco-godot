@@ -17,6 +17,12 @@
 ## - [code]pick[/code] interazione, una volta sola
 ##
 ## [b]Non ci sono animazioni di attacco.[/b] Vedi [member ANIM_ATTACK].
+##
+## [b]Nel mondo esplorabile[/b] ([Overworld]) il personaggio si ferma da solo
+## quando qualcuno lo "blocca" ([method lock] / [method unlock]): un testo,
+## un negozio, una battaglia. Il nodo ha l'origine ai piedi, cosi' l'ordinamento
+## per Y lo fa passare davanti e dietro a lampioni, facciate e manichini.
+class_name Player
 extends CharacterBody2D
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var sword: AudioStreamPlayer2D = $Sword
@@ -26,7 +32,22 @@ extends CharacterBody2D
 
 
 
-const SPEED := 300.0
+## Velocita' a passo normale, in pixel al secondo (una mattonella = 32 pixel).
+@export var speed: float = 130.0
+
+## Quanto si va piu' veloci tenendo premuto "Corri" (Maiusc).
+@export var run_multiplier: float = 1.75
+
+## Se false lo Spazio non fa partire l'attacco (nel mondo esplorabile non
+## serve: lo Spazio fa andare avanti i testi).
+@export var attack_enabled: bool = true
+
+## Se false il personaggio non partecipa al salvataggio da solo: nel mondo
+## esplorabile la posizione la tiene [code]GameState[/code].
+@export var saves_itself: bool = true
+
+## L'azione per correre.
+const RUN_ACTION := &"run"
 
 ## L'azione di input per parlare/interagire con chi ci sta intorno.
 const INTERACT_ACTION := &"interact"
@@ -70,6 +91,10 @@ var is_in_dialogue: bool = false
 ## (Space is both "attack" and the key used to advance the dialogue).
 var attack_cooldown: float = 0.0
 
+## Quanti blocchi sono attivi (testi, negozi, battaglie). Con almeno uno il
+## personaggio sta fermo e non interagisce.
+var _locks: int = 0
+
 
 func _ready() -> void:
 	interaction_area.area_entered.connect(_on_interaction_area_area_entered)
@@ -85,8 +110,67 @@ func _ready() -> void:
 
 	# Partecipa al salvataggio. Iscriversi al gruppo basta: chi salva passa di
 	# qui e chiama i due metodi qui sotto. Vedi Save/save_game.gd.
-	add_to_group(SaveGame.GROUP)
-	SaveGame.apply_to(self)
+	if saves_itself:
+		add_to_group(SaveGame.GROUP)
+		SaveGame.apply_to(self)
+	play_animation(ANIM_IDLE, last_direction)
+
+
+#----------------------------------------------
+#		BLOCCHI
+#----------------------------------------------
+
+## Ferma il personaggio finche' non arriva un [method unlock] corrispondente.
+## I blocchi si contano: due testi uno dentro l'altro non lo liberano prima.
+func lock() -> void:
+	_locks += 1
+	velocity = Vector2.ZERO
+	if walking.playing:
+		walking.stop()
+	if not is_picking:
+		play_animation(ANIM_IDLE, last_direction)
+
+
+func unlock() -> void:
+	_locks = maxi(_locks - 1, 0)
+	# Lo stesso tasto che ha chiuso il testo non deve far partire altro.
+	attack_cooldown = 0.15
+
+
+## Toglie tutti i blocchi (es. cambiando mappa dopo una sconfitta).
+func clear_locks() -> void:
+	_locks = 0
+
+
+func is_locked() -> bool:
+	return _locks > 0 or is_in_dialogue
+
+
+## Un "!" sopra la testa per un attimo: qualcuno ti ha visto, o ti sei
+## imbattuto in qualcosa.
+func emote_alert() -> void:
+	var label: Label = Label.new()
+	label.text = "!"
+	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_color_override("font_color", Color(1, 0.95, 0.6))
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	label.add_theme_constant_override("outline_size", 4)
+	label.position = Vector2(-4, -88)
+	label.z_index = 60
+	add_child(label)
+	var tween: Tween = label.create_tween()
+	tween.tween_property(label, "position:y", -94.0, 0.15)
+	tween.tween_interval(0.6)
+	tween.tween_callback(label.queue_free)
+
+
+## Si gira verso una direzione, fermo.
+func face(dir: Vector2) -> void:
+	if dir == Vector2.ZERO:
+		return
+	last_direction = dir
+	if not is_picking:
+		play_animation(ANIM_IDLE, last_direction)
 
 
 #----------------------------------------------
@@ -117,19 +201,24 @@ func apply_save_data(data: Variant) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(INTERACT_ACTION) and not is_in_dialogue:
+	if event.is_action_pressed(INTERACT_ACTION) and not is_locked() and attack_cooldown <= 0.0:
 		try_interact()
+		get_viewport().set_input_as_handled()
 
 
 func _physics_process(_delta: float) -> void:
-	# Freeze the player while a dialogue is open
-	if is_in_dialogue:
+	attack_cooldown = maxf(attack_cooldown - _delta, 0.0)
+
+	# Freeze the player while a dialogue (or a text, a shop, a battle) is open
+	if is_locked():
 		velocity = Vector2.ZERO
-		move_and_slide()
+		if walking.playing:
+			walking.stop()
+		if not is_picking:
+			play_animation(ANIM_IDLE, last_direction)
 		return
 
-	attack_cooldown = maxf(attack_cooldown - _delta, 0.0)
-	if attack_cooldown <= 0.0 and Input.is_action_just_pressed("attack") and not is_picking:
+	if attack_enabled and attack_cooldown <= 0.0 and Input.is_action_just_pressed("attack") and not is_picking:
 		attack()
 		
 	if is_picking:
@@ -160,13 +249,20 @@ func try_interact() -> void:
 
 
 ## Returns the interaction area that is closest to the player (or null).
+##
+## A parita' di distanza vince quello verso cui si guarda: davanti a un
+## bancone e un baule vicini, si parla con quello che hai di fronte.
 func get_closest_interactable() -> Area2D:
 	var closest: Area2D = null
 	var closest_distance: float = INF
+	var facing: Vector2 = last_direction.normalized()
 	for area: Area2D in nearby_interactables:
-		if not is_instance_valid(area):
+		if not is_instance_valid(area) or not area.monitorable:
 			continue
-		var distance: float = global_position.distance_to(area.global_position)
+		var offset: Vector2 = area.global_position - global_position
+		var distance: float = offset.length()
+		if distance > 0.0:
+			distance *= 1.5 - 0.5 * facing.dot(offset / distance)
 		if distance < closest_distance:
 			closest_distance = distance
 			closest = area
@@ -208,7 +304,8 @@ func process_movement() -> void:
 	var direction := Input.get_vector("left", "right", "up", "down")
 	
 	if direction != Vector2.ZERO:
-		velocity = direction * SPEED
+		var running: bool = InputMap.has_action(RUN_ACTION) and Input.is_action_pressed(RUN_ACTION)
+		velocity = direction * speed * (run_multiplier if running else 1.0)
 		last_direction = direction
 	else:
 		velocity =  Vector2.ZERO

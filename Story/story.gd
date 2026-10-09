@@ -132,15 +132,9 @@ func apply_save_data(data: Variant) -> void:
 
 ## La difficolta' delle impostazioni sposta la gavetta dei boss di un passo.
 func _apply_difficulty() -> void:
-	var delta: int = 0
-	match Settings.difficulty():
-		"easy":
-			delta = -1
-		"hard":
-			delta = 1
 	for zone: StoryData.StoryZone in _zones:
 		if zone.boss != null:
-			zone.boss.level = maxi(zone.boss.level + delta, 1)
+			StoryData.apply_difficulty(zone.boss)
 
 
 #region Interfaccia
@@ -710,14 +704,7 @@ func _gain_mask(mask_id: StringName) -> void:
 
 
 func _describe_mask(mask: MaskData, lead: String) -> String:
-	var lines: PackedStringArray = [lead, ""]
-	if not mask.quote.is_empty():
-		lines.append("[i]\"%s\"[/i]" % mask.quote)
-		lines.append("")
-	lines.append("[b]Affinita':[/b] %s" % mask.affinity_text())
-	lines.append("[b]Regola dell'azzardo:[/b] %s. %s" % [CardTypes.mask_gambit_name(mask.gambit), mask.description])
-	lines.append("[b]Il prezzo:[/b] %s" % mask.drawback)
-	return "\n".join(lines)
+	return StoryWords.describe_mask(mask, lead)
 
 
 ## Salva da solo, come farebbe "Salva" nel menu di pausa.

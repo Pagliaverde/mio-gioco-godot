@@ -90,3 +90,16 @@ static func rarity_name(rarity: CardTypes.Rarity) -> String:
 ## Il livello e' la gavetta.
 static func level_name(level: int) -> String:
 	return "Gavetta %d" % level
+
+
+## La descrizione di una maschera, con una frase d'apertura: affinita',
+## regola dell'azzardo e prezzo. La usano la storia e il mondo esplorabile.
+static func describe_mask(mask: MaskData, lead: String) -> String:
+	var lines: PackedStringArray = [lead, ""]
+	if not mask.quote.is_empty():
+		lines.append("[i]\"%s\"[/i]" % mask.quote)
+		lines.append("")
+	lines.append("[b]Affinita':[/b] %s" % mask.affinity_text())
+	lines.append("[b]Regola dell'azzardo:[/b] %s. %s" % [CardTypes.mask_gambit_name(mask.gambit), mask.description])
+	lines.append("[b]Il prezzo:[/b] %s" % mask.drawback)
+	return "\n".join(lines)

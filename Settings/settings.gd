@@ -528,6 +528,7 @@ func action_label(action: StringName) -> String:
 	var names: Dictionary = {
 		&"left": "Sinistra", &"right": "Destra", &"up": "Su", &"down": "Giù",
 		&"attack": "Attacco", &"interact": "Interagisci",
+		&"run": "Corri", &"inventory": "Inventario",
 	}
 	return names.get(action, str(action).capitalize())
 
